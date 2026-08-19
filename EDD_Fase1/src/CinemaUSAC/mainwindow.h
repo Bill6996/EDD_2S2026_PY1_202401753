@@ -2,22 +2,38 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QStackedWidget>
+#include <QPushButton>
+#include <QLineEdit>
+#include <QTableWidget>
+#include <QLabel>
+#include <QVBoxLayout>
 
-QT_BEGIN_NAMESPACE
-namespace Ui {
-class MainWindow;
-}
-QT_END_NAMESPACE
+#include "BSTCartelera.h"
+#include "ListaSolicitudes.h"
+#include "ListaPromociones.h"
+#include "MatrizDispersa.h"
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
-public:
-    explicit MainWindow(QWidget *parent = nullptr);
-    ~MainWindow() override;
-
 private:
-    Ui::MainWindow *ui;
+    // Estructuras globales
+    BSTCartelera cartelera;
+    ListaSolicitudes solicitudes;
+    ListaPromociones promociones;
+    MatrizDispersa* matrizActual;
+
+    // Componentes de la interfaz
+    QStackedWidget* panelPrincipal;
+
+    QWidget* crearPanelLogin();
+    QWidget* crearPanelAdmin();
+    QWidget* crearPanelUsuario();
+
+public:
+    MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
 };
+
 #endif // MAINWINDOW_H

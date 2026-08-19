@@ -13,6 +13,7 @@ SOURCES += \
 HEADERS += \
     BSTCartelera.h \
     Beneficio.h \
+    CargadorCSV.h \
     ListaPromociones.h \
     ListaSolicitudes.h \
     MatrizDispersa.h \
