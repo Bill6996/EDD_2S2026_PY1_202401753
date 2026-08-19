@@ -117,18 +117,25 @@ public:
     void generarReporteGraphviz() {
         std::ofstream file("../reportes/Matriz_Asientos.dot");
         file << "digraph MatrizDispersa {\n";
-        file << "  node [shape=box, fontname=\"Arial\"];\n";
+        file << "  node [fontname=\"Arial\"];\n";
         file << "  graph [splines=ortho];\n";
 
-        file << "  root [label=\"Funcion\", group=0, style=filled, fillcolor=orange];\n";
+        // Título dinámico
+        std::string titulo = "Función: " + (pelicula.empty() ? "Sin asignar" : pelicula) +
+                             " - " + (horario.empty() ? "00:00" : horario) +
+                             " - " + (sala.empty() ? "Sala 1" : sala);
+        file << "  labelloc=\"t\";\n";
+        file << "  label=\"" << titulo << "\";\n";
+
+        file << "  root [label=\"Funcion\", group=0, shape=box, style=filled, fillcolor=orange];\n";
 
         for (int j = 1; j <= maxColumnas; j++) {
-            file << "  col_" << j << " [label=\"C" << j << "\", group=" << j << ", style=filled, fillcolor=yellow];\n";
+            file << "  col_" << j << " [label=\"C" << j << "\", group=" << j << ", shape=box, style=filled, fillcolor=yellow];\n";
         }
 
         int ocupados = 0;
         for (int i = 1; i <= maxFilas; i++) {
-            file << "  row_" << i << " [label=\"F" << i << "\", group=0, style=filled, fillcolor=yellow];\n";
+            file << "  row_" << i << " [label=\"F" << i << "\", group=0, shape=box, style=filled, fillcolor=yellow];\n";
             NodoMatriz* fHead = buscarFila(i);
             NodoMatriz* curr = (fHead) ? fHead->derecha : nullptr;
 
@@ -165,7 +172,7 @@ public:
 
         int total = maxFilas * maxColumnas;
         int libres = total - ocupados;
-        file << "  info [label=\"Total: " << total << "\\nLibres: " << libres << "\\nOcupados: " << ocupados << "\", shape=note];\n";
+        file << "  info [label=\"Estadísticas:\\nTotal Asientos: " << total << "\\nReservados: " << ocupados << "\\nLibres: " << libres << "\", shape=note, style=filled, fillcolor=lightgray];\n";
 
         file << "}\n";
         file.close();

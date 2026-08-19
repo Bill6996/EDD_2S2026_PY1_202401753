@@ -45,10 +45,10 @@ public:
         std::ofstream file("../reportes/Lista_Solicitudes.dot");
         file << "digraph ListaSolicitudes {\n";
         file << "  rankdir=LR;\n";
-        file << "  node [shape=circle, fontname=\"Arial\"];\n";
+        file << "  node [shape=circle, fontname=\"Arial\", style=filled, fillcolor=lightyellow];\n";
 
         if (cabeza == nullptr) {
-            file << "  empty [label=\"Sin Solicitudes Pendientes\"];\n";
+            file << "  empty [label=\"Sin Solicitudes Pendientes\", shape=box];\n";
         } else {
             Solicitud* aux = cabeza;
             do {
@@ -58,12 +58,14 @@ public:
                      << "Tipo: " << aux->tipo << "\\n"
                      << "Estado: " << aux->estado << "\"];\n";
 
-                file << "  node_" << aux->numero << " -> node_" << aux->siguiente->numero << ";\n";
-                file << "  node_" << aux->siguiente->numero << " -> node_" << aux->numero << ";\n";
+                file << "  node_" << aux->numero << " -> node_" << aux->siguiente->numero << " [dir=both];\n";
 
                 aux = aux->siguiente;
             } while (aux != cabeza);
         }
+
+        // Contador total de pendientes
+        file << "  counter [label=\"Total Pendientes: " << getTotalPendientes() << "\", shape=note, style=filled, fillcolor=lightblue];\n";
 
         file << "}\n";
         file.close();

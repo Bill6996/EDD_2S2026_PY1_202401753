@@ -50,6 +50,8 @@ private:
     QWidget* pestanaClienteCartelera();
     QWidget* pestanaClienteReservas();
     QWidget* pestanaClienteSolicitudes();
+    QWidget* pestanaClientePromociones();
+    QWidget* pestanaReportesVisuales();
 
     // Funciones de sincronización
     void refrescarSolicitudesAdmin();

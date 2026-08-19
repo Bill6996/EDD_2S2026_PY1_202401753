@@ -146,13 +146,10 @@ public:
 
                 while (ben != nullptr) {
                     std::string nodeBen = "ben_" + aux->codigo + "_" + std::to_string(i);
-                    file << "  " << nodeBen << " [label=\"" << ben->tipo << "\\n" << ben->descripcion
+                    file << "  " << nodeBen << " [label=\"Tipo: " << ben->tipo << "\\n" << ben->descripcion
                          << "\\nValor: " << ben->valor << "\", style=filled, fillcolor=lightyellow];\n";
 
-                    file << "  " << ultimoNodo << " -> " << nodeBen << ";\n";
-                    if (ultimoNodo != "promo_" + aux->codigo) {
-                        file << "  " << nodeBen << " -> " << ultimoNodo << ";\n";
-                    }
+                    file << "  " << ultimoNodo << " -> " << nodeBen << " [dir=both];\n";
 
                     ultimoNodo = nodeBen;
                     ben = ben->siguiente;

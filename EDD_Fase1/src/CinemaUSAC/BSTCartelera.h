@@ -71,10 +71,18 @@ private:
 
     void generarGraphvizRecursivo(Pelicula* nodo, std::ofstream& file) {
         if (nodo != nullptr) {
-            file << "  node_" << nodo->codigo << " [label=\"Codigo: " << nodo->codigo
-                 << "\\nTitulo: " << nodo->titulo
-                 << "\\nDuracion: " << nodo->duracion << " min"
-                 << "\\nClasificacion: " << nodo->clasificacion << "\", shape=box, style=filled, fillcolor=lightgreen];\n";
+            // Lógica de color según requerimiento
+            QDate fFin = QDate::fromString(QString::fromStdString(nodo->fechaFin), "yyyy-MM-dd");
+            QDate hoy = QDate::currentDate();
+            std::string color = "lightgreen"; // Verde: en cartelera
+            if (fFin.isValid() && hoy.daysTo(fFin) <= 7 && hoy.daysTo(fFin) >= 0) {
+                color = "yellow"; // Amarillo: próximo a retirar
+            }
+
+            file << "  node_" << nodo->codigo << " [label=\"Código: " << nodo->codigo
+                 << "\\nTítulo: " << nodo->titulo
+                 << "\\nDuración: " << nodo->duracion << " min"
+                 << "\\nClasificación: " << nodo->clasificacion << "\", shape=box, style=filled, fillcolor=" << color << "];\n";
 
             if (nodo->izquierda != nullptr) {
                 file << "  node_" << nodo->codigo << " -> node_" << nodo->izquierda->codigo << ";\n";
@@ -101,25 +109,12 @@ private:
         tabla->setItem(fila, 6, new QTableWidgetItem(QString::fromStdString(nodo->fechaEstreno)));
         tabla->setItem(fila, 7, new QTableWidgetItem(QString::fromStdString(nodo->fechaFin)));
 
-        // Calcular Estado de Cartelera
-        QDate fEstreno = QDate::fromString(QString::fromStdString(nodo->fechaEstreno), "yyyy-MM-dd");
-        QDate fFin = QDate::fromString(QString::fromStdString(nodo->fechaFin), "yyyy-MM-dd");
+        // Alerta de fecha fin a menos de 7 días
+        QDate fechaFinPeli = QDate::fromString(QString::fromStdString(nodo->fechaFin), "yyyy-MM-dd");
         QDate hoy = QDate::currentDate();
-
-        QString estado = "En cartelera";
-        if (fEstreno.isValid() && hoy < fEstreno) {
-            estado = "Próximo estreno";
-        } else if (fFin.isValid() && hoy.daysTo(fFin) <= 7 && hoy.daysTo(fFin) >= 0) {
-            estado = "Próximo a retirar";
-        }
-
-        QTableWidgetItem* itemEstado = new QTableWidgetItem(estado);
-        tabla->setItem(fila, 8, itemEstado);
-
-        // Resaltado de Alerta
-        if (estado == "Próximo a retirar") {
-            for (int col = 0; col < 9; col++) {
-                tabla->item(fila, col)->setBackground(QBrush(QColor(255, 235, 59))); // Amarillo
+        if (fechaFinPeli.isValid() && hoy.daysTo(fechaFinPeli) <= 7 && hoy.daysTo(fechaFinPeli) >= 0) {
+            for (int col = 0; col < 8; col++) {
+                tabla->item(fila, col)->setBackground(QBrush(QColor(255, 235, 59))); // Amarillo alerta
                 tabla->item(fila, col)->setForeground(QBrush(Qt::black));
             }
         }
