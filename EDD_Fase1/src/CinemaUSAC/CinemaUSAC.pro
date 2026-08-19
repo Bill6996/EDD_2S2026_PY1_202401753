@@ -12,7 +12,9 @@ SOURCES += \
 
 HEADERS += \
     BSTCartelera.h \
+    ListaSolicitudes.h \
     Pelicula.h \
+    Solicitud.h \
     mainwindow.h
 
 FORMS += \
