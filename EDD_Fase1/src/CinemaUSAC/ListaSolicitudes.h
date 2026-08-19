@@ -1,5 +1,6 @@
 #ifndef LISTASOLICITUDES_H
 #define LISTASOLICITUDES_H
+
 #include "Solicitud.h"
 #include <iostream>
 #include <fstream>
@@ -58,6 +59,37 @@ public:
         file.close();
 
         system("dot -Tpng ../reportes/Lista_Solicitudes.dot -o ../reportes/Lista_Solicitudes.png");
+    }
+
+    Solicitud* getPrimera() {
+        return cabeza;
+    }
+
+    bool rechazarPrimera() {
+        if (cabeza == nullptr) return false;
+        if (cabeza->siguiente == cabeza) {
+            delete cabeza;
+            cabeza = nullptr;
+        } else {
+            Solicitud* ultimo = cabeza->anterior;
+            Solicitud* temp = cabeza;
+            cabeza = cabeza->siguiente;
+            ultimo->siguiente = cabeza;
+            cabeza->anterior = ultimo;
+            delete temp;
+        }
+        return true;
+    }
+
+    int getTotalPendientes() {
+        if (cabeza == nullptr) return 0;
+        int count = 0;
+        Solicitud* aux = cabeza;
+        do {
+            count++;
+            aux = aux->siguiente;
+        } while (aux != cabeza);
+        return count;
     }
 };
 

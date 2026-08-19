@@ -1,14 +1,15 @@
 #include "mainwindow.h"
 #include "CargadorCSV.h"
+#include <QInputDialog>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), matrizActual(nullptr) {
     this->setWindowTitle("CinemaUSAC - Sistema de Gestión");
-    this->resize(1000, 700);
+    this->resize(1100, 750);
 
     panelPrincipal = new QStackedWidget(this);
-    panelPrincipal->addWidget(crearPanelLogin());   // Índice 0
-    panelPrincipal->addWidget(crearPanelAdmin());   // Índice 1
-    panelPrincipal->addWidget(crearPanelUsuario()); // Índice 2
+    panelPrincipal->addWidget(crearPanelLogin());   // 0
+    panelPrincipal->addWidget(crearPanelAdmin());   // 1
+    panelPrincipal->addWidget(crearPanelUsuario()); // 2
 
     setCentralWidget(panelPrincipal);
 }
@@ -18,7 +19,7 @@ MainWindow::~MainWindow() {
 }
 
 // ----------------------------------------------------
-// LOGIN UNIFICADO POR CREDENCIALES
+// LOGIN UNIFICADO
 // ----------------------------------------------------
 QWidget* MainWindow::crearPanelLogin() {
     QWidget* vista = new QWidget();
@@ -26,22 +27,12 @@ QWidget* MainWindow::crearPanelLogin() {
     layout->setAlignment(Qt::AlignCenter);
 
     QLabel* titulo = new QLabel("PANEL GENERAL - LOGIN");
-    QFont font = titulo->font();
-    font.setPointSize(16);
-    font.setBold(true);
+    QFont font = titulo->font(); font.setPointSize(16); font.setBold(true);
     titulo->setFont(font);
 
-    QLineEdit* txtCorreo = new QLineEdit();
-    txtCorreo->setPlaceholderText("Correo electrónico");
-    txtCorreo->setFixedWidth(300);
-
-    QLineEdit* txtPassword = new QLineEdit();
-    txtPassword->setPlaceholderText("Contraseña");
-    txtPassword->setEchoMode(QLineEdit::Password);
-    txtPassword->setFixedWidth(300);
-
-    QPushButton* btnIngresar = new QPushButton("INICIAR SESION");
-    btnIngresar->setFixedWidth(300);
+    QLineEdit* txtCorreo = new QLineEdit(); txtCorreo->setPlaceholderText("Correo electrónico"); txtCorreo->setFixedWidth(300);
+    QLineEdit* txtPassword = new QLineEdit(); txtPassword->setPlaceholderText("Contraseña"); txtPassword->setEchoMode(QLineEdit::Password); txtPassword->setFixedWidth(300);
+    QPushButton* btnIngresar = new QPushButton("INICIAR SESION"); btnIngresar->setFixedWidth(300);
     btnIngresar->setStyleSheet("background-color: #2e7d32; color: white; font-weight: bold; padding: 8px;");
 
     layout->addWidget(titulo, 0, Qt::AlignCenter);
@@ -62,7 +53,7 @@ QWidget* MainWindow::crearPanelLogin() {
             txtCorreo->clear(); txtPassword->clear();
             panelPrincipal->setCurrentIndex(2);
         } else {
-            QMessageBox::warning(this, "Error", "Credenciales incorrectas.\nUse:\nAdmin: admin@cinema.com / admin123\nCliente: cliente@cinema.com / 1234");
+            QMessageBox::warning(this, "Error", "Credenciales incorrectas.\nAdmin: admin@cinema.com / admin123\nCliente: cliente@cinema.com / 1234");
         }
     });
 
@@ -70,7 +61,7 @@ QWidget* MainWindow::crearPanelLogin() {
 }
 
 // ----------------------------------------------------
-// PANEL ADMINISTRATIVO CON PESTAÑAS (QTabWidget)
+// PANEL ADMINISTRATIVO
 // ----------------------------------------------------
 QWidget* MainWindow::crearPanelAdmin() {
     QWidget* vista = new QWidget();
@@ -78,9 +69,7 @@ QWidget* MainWindow::crearPanelAdmin() {
 
     QHBoxLayout* header = new QHBoxLayout();
     QLabel* titulo = new QLabel("PANEL ADMINISTRATIVO");
-    QFont font = titulo->font();
-    font.setBold(true);
-    font.setPointSize(14);
+    QFont font = titulo->font(); font.setBold(true); font.setPointSize(14);
     titulo->setFont(font);
 
     QPushButton* btnReportes = new QPushButton("Generar Reportes Graphviz");
@@ -106,24 +95,22 @@ QWidget* MainWindow::crearPanelAdmin() {
         solicitudes.generarReporteGraphviz();
         promociones.generarReporteGraphviz();
         if (matrizActual) matrizActual->generarReporteGraphviz();
-        QMessageBox::information(this, "Reportes", "Reportes Graphviz generados exitosamente en la carpeta /reportes.");
+        QMessageBox::information(this, "Reportes", "Reportes Graphviz generados exitosamente en /reportes.");
     });
 
     return vista;
 }
 
-// Pestaña 1 Admin: Películas
+// Pestaña 1: Cartelera y Tabla Reflejada
 QWidget* MainWindow::pestanaGestionPeliculas() {
     QWidget* tab = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(tab);
 
     QHBoxLayout* btnLayout = new QHBoxLayout();
     QPushButton* btnAgregar = new QPushButton("Agregar Pelicula");
-    QPushButton* btnEliminar = new QPushButton("Eliminar");
     QPushButton* btnCargaCSV = new QPushButton("Carga Masiva (CSV)");
 
     btnLayout->addWidget(btnAgregar);
-    btnLayout->addWidget(btnEliminar);
     btnLayout->addWidget(btnCargaCSV);
     btnLayout->addStretch();
 
@@ -135,18 +122,33 @@ QWidget* MainWindow::pestanaGestionPeliculas() {
     layout->addLayout(btnLayout);
     layout->addWidget(tablaCarteleraAdmin);
 
+    // Carga CSV y reflejar en tabla
     connect(btnCargaCSV, &QPushButton::clicked, [this]() {
         QString ruta = QFileDialog::getOpenFileName(this, "Seleccionar CSV", "", "Archivos CSV (*.csv)");
         if (!ruta.isEmpty()) {
             CargadorCSV::cargarPeliculas(ruta.toStdString(), cartelera);
-            QMessageBox::information(this, "Éxito", "Películas cargadas desde el archivo CSV.");
+            cartelera.cargarEnTabla(tablaCarteleraAdmin);
+            QMessageBox::information(this, "Éxito", "Películas cargadas y reflejadas en la tabla.");
         }
+    });
+
+    // Agregar película manualmente
+    connect(btnAgregar, &QPushButton::clicked, [this]() {
+        bool ok;
+        QString cod = QInputDialog::getText(this, "Agregar", "Código (ej. P005):", QLineEdit::Normal, "", &ok);
+        if (!ok || cod.isEmpty()) return;
+        QString tit = QInputDialog::getText(this, "Agregar", "Título:", QLineEdit::Normal, "", &ok);
+        QString gen = QInputDialog::getText(this, "Agregar", "Género:", QLineEdit::Normal, "", &ok);
+        int dur = QInputDialog::getInt(this, "Agregar", "Duración (min):", 120, 1, 500, 1, &ok);
+
+        cartelera.insertar(cod.toStdString(), tit.toStdString(), gen.toStdString(), dur, "B15", "Español", "2026-08-01", "2026-09-01");
+        cartelera.cargarEnTabla(tablaCarteleraAdmin);
     });
 
     return tab;
 }
 
-// Pestaña 2 Admin: Promociones
+// Pestaña 2: Promociones y Beneficios
 QWidget* MainWindow::pestanaGestionPromociones() {
     QWidget* tab = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(tab);
@@ -158,77 +160,148 @@ QWidget* MainWindow::pestanaGestionPromociones() {
     topBtns->addWidget(btnAddBeneficio);
     topBtns->addStretch();
 
-    QLabel* info = new QLabel("Estructura de Promociones (Lista Circular de Listas)\nUtilice la opción de Reportes Graphviz para visualizar el diagrama completo.");
-    info->setAlignment(Qt::AlignCenter);
+    QTableWidget* tablaPromos = new QTableWidget(0, 3);
+    tablaPromos->setHorizontalHeaderLabels({"CÓDIGO", "NOMBRE", "VIGENCIA"});
+    tablaPromos->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
     layout->addLayout(topBtns);
-    layout->addWidget(info);
+    layout->addWidget(tablaPromos);
 
-    connect(btnAddPromo, &QPushButton::clicked, [this]() {
-        promociones.insertar("Promo_01", "Martes de Locura", "2026-01-01 / 2026-12-31", "Martes");
-        QMessageBox::information(this, "Promoción", "Promoción 'Promo_01' registrada.");
+    connect(btnAddPromo, &QPushButton::clicked, [this, tablaPromos]() {
+        bool ok;
+        QString cod = QInputDialog::getText(this, "Promoción", "Código (ej. Promo_01):", QLineEdit::Normal, "", &ok);
+        if (!ok || cod.isEmpty()) return;
+        QString nom = QInputDialog::getText(this, "Promoción", "Nombre de la Promoción:", QLineEdit::Normal, "", &ok);
+
+        promociones.insertar(cod.toStdString(), nom.toStdString(), "Vigente", "Todos los dias");
+
+        int row = tablaPromos->rowCount();
+        tablaPromos->insertRow(row);
+        tablaPromos->setItem(row, 0, new QTableWidgetItem(cod));
+        tablaPromos->setItem(row, 1, new QTableWidgetItem(nom));
+        tablaPromos->setItem(row, 2, new QTableWidgetItem("Vigente"));
+    });
+
+    connect(btnAddBeneficio, &QPushButton::clicked, [this]() {
+        bool ok;
+        QString cod = QInputDialog::getText(this, "Beneficio", "Código de Promoción a la que pertenece:", QLineEdit::Normal, "", &ok);
+        if (!ok || cod.isEmpty()) return;
+        Promocion* p = promociones.buscar(cod.toStdString());
+        if (!p) {
+            QMessageBox::warning(this, "Error", "La promoción especificada no existe.");
+            return;
+        }
+        QString desc = QInputDialog::getText(this, "Beneficio", "Descripción del beneficio:", QLineEdit::Normal, "", &ok);
+        p->agregarBeneficio("Descuento", desc.toStdString(), "10%");
+        QMessageBox::information(this, "Éxito", "Beneficio agregado a la promoción.");
     });
 
     return tab;
 }
 
-// Pestaña 3 Admin: Solicitudes
+// Pestaña 3: Solicitudes Especiales
 QWidget* MainWindow::pestanaGestionSolicitudes() {
     QWidget* tab = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(tab);
 
-    QLabel* lblSolicitudes = new QLabel("Gestión de Solicitudes Especiales (Lista Circular Doble)");
+    QLabel* lblInfo = new QLabel("Solicitudes Especiales Pendientes");
+    lblInfo->setFont(QFont("Arial", 11, QFont::Bold));
+
+    QLabel* lblDetalle = new QLabel("No hay solicitudes pendientes.");
+    lblDetalle->setStyleSheet("border: 1px solid gray; padding: 10px; background-color: #222;");
+
     QHBoxLayout* acciones = new QHBoxLayout();
-
-    QPushButton* btnAceptar = new QPushButton("Aceptar Solicitud");
+    QPushButton* btnAceptar = new QPushButton("Aceptar / Atender Solicitud");
     QPushButton* btnRechazar = new QPushButton("Rechazar Solicitud");
+    acciones->addWidget(btnAceptar); acciones->addWidget(btnRechazar);
 
-    acciones->addWidget(btnAceptar);
-    acciones->addWidget(btnRechazar);
-
-    layout->addWidget(lblSolicitudes);
+    layout->addWidget(lblInfo);
+    layout->addWidget(lblDetalle);
     layout->addLayout(acciones);
     layout->addStretch();
+
+    auto refrescarVista = [this, lblDetalle]() {
+        Solicitud* s = solicitudes.getPrimera();
+        if (s) {
+            lblDetalle->setText(QString("Solicitud #%1 | Cliente: %2\nTipo: %3\nDescripción: %4\nEstado: %5")
+                                    .arg(s->numero).arg(QString::fromStdString(s->cliente))
+                                    .arg(QString::fromStdString(s->tipo)).arg(QString::fromStdString(s->descripcion))
+                                    .arg(QString::fromStdString(s->estado)));
+        } else {
+            lblDetalle->setText("No hay solicitudes pendientes en la lista.");
+        }
+    };
+
+    connect(btnAceptar, &QPushButton::clicked, [this, refrescarVista]() {
+        Solicitud* s = solicitudes.getPrimera();
+        if (!s) { QMessageBox::information(this, "Info", "No hay solicitudes pendientes."); return; }
+        s->estado = "Atendida";
+        QMessageBox::information(this, "Atendida", QString("Solicitud #%1 marcada como Atendida.").arg(s->numero));
+        solicitudes.rechazarPrimera(); // Avanzar al siguiente nodo
+        refrescarVista();
+    });
+
+    connect(btnRechazar, &QPushButton::clicked, [this, refrescarVista]() {
+        if (solicitudes.rechazarPrimera()) {
+            QMessageBox::information(this, "Rechazada", "Solicitud eliminada de la lista.");
+        } else {
+            QMessageBox::information(this, "Info", "No hay solicitudes pendientes.");
+        }
+        refrescarVista();
+    });
 
     return tab;
 }
 
-// Pestaña 4 Admin: Funciones y Mapa de Asientos
+// Pestaña 4: Funciones y Cuadrícula Visual de Asientos
 QWidget* MainWindow::pestanaGestionFunciones() {
     QWidget* tab = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(tab);
 
-    QGridLayout* grid = new QGridLayout();
-    QLineEdit* txtPelicula = new QLineEdit(); txtPelicula->setPlaceholderText("Código Película (ej. P001)");
-    QLineEdit* txtSala = new QLineEdit(); txtSala->setPlaceholderText("Sala (ej. Sala 1)");
-    QLineEdit* txtFilas = new QLineEdit(); txtFilas->setPlaceholderText("Filas (ej. 10)");
-    QLineEdit* txtCols = new QLineEdit(); txtCols->setPlaceholderText("Columnas (ej. 10)");
+    QGridLayout* gridConfig = new QGridLayout();
+    QLineEdit* txtFilas = new QLineEdit("5"); txtFilas->setPlaceholderText("Filas (ej. 5)");
+    QLineEdit* txtCols = new QLineEdit("8"); txtCols->setPlaceholderText("Columnas (ej. 8)");
     QPushButton* btnCrear = new QPushButton("Crear Función");
 
-    grid->addWidget(new QLabel("Película:"), 0, 0); grid->addWidget(txtPelicula, 0, 1);
-    grid->addWidget(new QLabel("Sala:"), 0, 2); grid->addWidget(txtSala, 0, 3);
-    grid->addWidget(new QLabel("Filas:"), 1, 0); grid->addWidget(txtFilas, 1, 1);
-    grid->addWidget(new QLabel("Columnas:"), 1, 2); grid->addWidget(txtCols, 1, 3);
-    grid->addWidget(btnCrear, 2, 0, 1, 4);
+    gridConfig->addWidget(new QLabel("Filas:"), 0, 0); gridConfig->addWidget(txtFilas, 0, 1);
+    gridConfig->addWidget(new QLabel("Columnas:"), 0, 2); gridConfig->addWidget(txtCols, 0, 3);
+    gridConfig->addWidget(btnCrear, 0, 4);
 
-    layout->addLayout(grid);
-    layout->addStretch();
+    QTableWidget* mapaVisual = new QTableWidget();
+    mapaVisual->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-    connect(btnCrear, &QPushButton::clicked, [this, txtFilas, txtCols]() {
+    layout->addLayout(gridConfig);
+    layout->addWidget(new QLabel("Mapa de Asientos Ocupados (Matriz Dispersa):"));
+    layout->addWidget(mapaVisual);
+
+    connect(btnCrear, &QPushButton::clicked, [this, txtFilas, txtCols, mapaVisual]() {
         int f = txtFilas->text().toInt();
         int c = txtCols->text().toInt();
-        if (f <= 0 || c <= 0) { f = 10; c = 10; }
+        if (f <= 0 || c <= 0) { f = 5; c = 8; }
 
         if (matrizActual) delete matrizActual;
         matrizActual = new MatrizDispersa(f, c);
-        QMessageBox::information(this, "Matriz Generada", QString("Función creada con matriz dispersa de %1x%2 asientos.").arg(f).arg(c));
+
+        // Renderizar la cuadrícula de la sala
+        mapaVisual->setRowCount(f);
+        mapaVisual->setColumnCount(c);
+        for (int r = 0; r < f; r++) {
+            for (int col = 0; col < c; col++) {
+                QTableWidgetItem* item = new QTableWidgetItem(QString("F%1-C%2\nLIBRE").arg(r + 1).arg(col + 1));
+                item->setBackground(QBrush(QColor(46, 125, 50))); // Verde
+                item->setForeground(QBrush(Qt::white));
+                item->setTextAlignment(Qt::AlignCenter);
+                mapaVisual->setItem(r, col, item);
+            }
+        }
+        QMessageBox::information(this, "Éxito", QString("Función creada con sala de %1 filas x %2 columnas.").arg(f).arg(c));
     });
 
     return tab;
 }
 
 // ----------------------------------------------------
-// PANEL DE CLIENTE / TAQUILLA
+// PANEL CLIENTE
 // ----------------------------------------------------
 QWidget* MainWindow::crearPanelUsuario() {
     QWidget* vista = new QWidget();
@@ -240,13 +313,11 @@ QWidget* MainWindow::crearPanelUsuario() {
     titulo->setFont(font);
 
     QPushButton* btnLogout = new QPushButton("Cerrar Sesión");
-    header->addWidget(titulo);
-    header->addStretch();
-    header->addWidget(btnLogout);
+    header->addWidget(titulo); header->addStretch(); header->addWidget(btnLogout);
 
     QTabWidget* tabsUsuario = new QTabWidget();
     tabsUsuario->addTab(pestanaClienteCartelera(), "Ver Cartelera");
-    tabsUsuario->addTab(pestanaClienteReservas(), "Reservar / Cancelar Asientos");
+    tabsUsuario->addTab(pestanaClienteReservas(), "Reservar Asiento");
     tabsUsuario->addTab(pestanaClienteSolicitudes(), "Solicitudes Especiales");
 
     layout->addLayout(header);
@@ -260,9 +331,18 @@ QWidget* MainWindow::crearPanelUsuario() {
 QWidget* MainWindow::pestanaClienteCartelera() {
     QWidget* tab = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(tab);
-    QLabel* lbl = new QLabel("Cartelera de Películas Disponibles");
-    layout->addWidget(lbl);
-    layout->addStretch();
+    QTableWidget* tablaUser = new QTableWidget(0, 8);
+    tablaUser->setHorizontalHeaderLabels({"CÓDIGO", "TÍTULO", "GÉNERO", "DURACIÓN", "CLASIFICACIÓN", "IDIOMA", "ESTRENO", "FIN"});
+    tablaUser->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+    QPushButton* btnVer = new QPushButton("Actualizar Cartelera");
+    layout->addWidget(btnVer);
+    layout->addWidget(tablaUser);
+
+    connect(btnVer, &QPushButton::clicked, [this, tablaUser]() {
+        cartelera.cargarEnTabla(tablaUser);
+    });
+
     return tab;
 }
 
@@ -271,36 +351,29 @@ QWidget* MainWindow::pestanaClienteReservas() {
     QVBoxLayout* layout = new QVBoxLayout(tab);
 
     QHBoxLayout* inputs = new QHBoxLayout();
-    QLineEdit* txtFila = new QLineEdit(); txtFila->setPlaceholderText("Fila");
-    QLineEdit* txtCol = new QLineEdit(); txtCol->setPlaceholderText("Columna/Asiento");
+    QLineEdit* txtFila = new QLineEdit(); txtFila->setPlaceholderText("Fila (ej. 1)");
+    QLineEdit* txtCol = new QLineEdit(); txtCol->setPlaceholderText("Columna (ej. 1)");
     QLineEdit* txtCliente = new QLineEdit(); txtCliente->setPlaceholderText("Nombre del Cliente");
     QPushButton* btnReservar = new QPushButton("Reservar Asiento");
 
-    inputs->addWidget(txtFila);
-    inputs->addWidget(txtCol);
-    inputs->addWidget(txtCliente);
-    inputs->addWidget(btnReservar);
+    inputs->addWidget(txtFila); inputs->addWidget(txtCol); inputs->addWidget(txtCliente); inputs->addWidget(btnReservar);
 
     layout->addLayout(inputs);
     layout->addStretch();
 
     connect(btnReservar, &QPushButton::clicked, [this, txtFila, txtCol, txtCliente]() {
         if (!matrizActual) {
-            QMessageBox::warning(this, "Error", "No existe ninguna función activa creada por el administrador.");
+            QMessageBox::warning(this, "Error", "No hay función activa creada.");
             return;
         }
         int f = txtFila->text().toInt();
         int c = txtCol->text().toInt();
         QString cli = txtCliente->text().trimmed();
-
         if (cli.isEmpty()) cli = "Cliente";
 
         bool ok = matrizActual->reservarAsiento(f, c, cli.toStdString());
-        if (ok) {
-            QMessageBox::information(this, "Reserva Éxito", QString("Asiento F%1-C%2 reservado a nombre de %3.").arg(f).arg(c).arg(cli));
-        } else {
-            QMessageBox::warning(this, "Ocupado", "El asiento seleccionado ya está ocupado o fuera de rango.");
-        }
+        if (ok) QMessageBox::information(this, "Reserva", QString("Asiento F%1-C%2 reservado.").arg(f).arg(c));
+        else QMessageBox::warning(this, "Error", "Asiento ocupado o inválido.");
     });
 
     return tab;
@@ -310,23 +383,20 @@ QWidget* MainWindow::pestanaClienteSolicitudes() {
     QWidget* tab = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(tab);
 
-    QLineEdit* txtNombre = new QLineEdit(); txtNombre->setPlaceholderText("Nombre y Apellido");
+    QLineEdit* txtNombre = new QLineEdit(); txtNombre->setPlaceholderText("Nombre del Cliente");
     QLineEdit* txtTel = new QLineEdit(); txtTel->setPlaceholderText("Teléfono");
-    QLineEdit* txtTipo = new QLineEdit(); txtTipo->setPlaceholderText("Tipo (Cumpleaños, Aniversario, etc.)");
-    QLineEdit* txtDesc = new QLineEdit(); txtDesc->setPlaceholderText("Descripción de la solicitud");
-    QPushButton* btnEnviar = new QPushButton("Enviar Solicitud Especial");
+    QLineEdit* txtTipo = new QLineEdit(); txtTipo->setPlaceholderText("Tipo (Cumpleaños, Evento, etc.)");
+    QLineEdit* txtDesc = new QLineEdit(); txtDesc->setPlaceholderText("Descripción");
+    QPushButton* btnEnviar = new QPushButton("Enviar Solicitud");
 
-    layout->addWidget(txtNombre);
-    layout->addWidget(txtTel);
-    layout->addWidget(txtTipo);
-    layout->addWidget(txtDesc);
-    layout->addWidget(btnEnviar);
-    layout->addStretch();
+    layout->addWidget(txtNombre); layout->addWidget(txtTel);
+    layout->addWidget(txtTipo); layout->addWidget(txtDesc);
+    layout->addWidget(btnEnviar); layout->addStretch();
 
     connect(btnEnviar, &QPushButton::clicked, [this, txtNombre, txtTel, txtTipo, txtDesc]() {
         solicitudes.insertar(txtNombre->text().toStdString(), txtTel->text().toStdString(),
                              txtTipo->text().toStdString(), txtDesc->text().toStdString(), "2026-08-19");
-        QMessageBox::information(this, "Solicitud", "Solicitud registrada correctamente.");
+        QMessageBox::information(this, "Éxito", "Solicitud registrada para revisión del administrador.");
     });
 
     return tab;

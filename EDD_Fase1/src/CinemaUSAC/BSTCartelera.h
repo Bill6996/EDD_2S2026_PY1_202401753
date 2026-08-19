@@ -1,9 +1,11 @@
 #ifndef BSTCARTELERA_H
 #define BSTCARTELERA_H
+
 #include "Pelicula.h"
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <QTableWidget>
 
 class BSTCartelera {
 private:
@@ -37,6 +39,24 @@ private:
         }
     }
 
+    void inordenTabla(Pelicula* nodo, QTableWidget* tabla, int& fila) {
+        if (nodo == nullptr) return;
+        inordenTabla(nodo->izquierda, tabla, fila);
+
+        tabla->insertRow(fila);
+        tabla->setItem(fila, 0, new QTableWidgetItem(QString::fromStdString(nodo->codigo)));
+        tabla->setItem(fila, 1, new QTableWidgetItem(QString::fromStdString(nodo->titulo)));
+        tabla->setItem(fila, 2, new QTableWidgetItem(QString::fromStdString(nodo->genero)));
+        tabla->setItem(fila, 3, new QTableWidgetItem(QString::number(nodo->duracion) + " min"));
+        tabla->setItem(fila, 4, new QTableWidgetItem(QString::fromStdString(nodo->clasificacion)));
+        tabla->setItem(fila, 5, new QTableWidgetItem(QString::fromStdString(nodo->idioma)));
+        tabla->setItem(fila, 6, new QTableWidgetItem(QString::fromStdString(nodo->fechaEstreno)));
+        tabla->setItem(fila, 7, new QTableWidgetItem(QString::fromStdString(nodo->fechaFin)));
+        fila++;
+
+        inordenTabla(nodo->derecha, tabla, fila);
+    }
+
 public:
     BSTCartelera() : raiz(nullptr) {}
 
@@ -59,6 +79,12 @@ public:
         file.close();
 
         system("dot -Tpng ../reportes/BST_Cartelera.dot -o ../reportes/BST_Cartelera.png");
+    }
+
+    void cargarEnTabla(QTableWidget* tabla) {
+        tabla->setRowCount(0);
+        int fila = 0;
+        inordenTabla(raiz, tabla, fila);
     }
 };
 
