@@ -31,25 +31,28 @@ private:
 
     QStackedWidget* panelPrincipal;
 
+    // Punteros globales para refresco de UI en tiempo real
+    QTableWidget* tablaCarteleraAdmin;
+    QTableWidget* mapaVisualAdmin;
+    QLabel* lblDetalleSolicitudAdmin;
+
     // Métodos para construir pantallas y pestañas
     QWidget* crearPanelLogin();
     QWidget* crearPanelAdmin();
     QWidget* crearPanelUsuario();
 
-    // Pestañas de Administrador
     QWidget* pestanaGestionPeliculas();
     QWidget* pestanaGestionPromociones();
     QWidget* pestanaGestionSolicitudes();
     QWidget* pestanaGestionFunciones();
 
-    // Pestañas de Cliente
     QWidget* pestanaClienteCartelera();
     QWidget* pestanaClienteReservas();
     QWidget* pestanaClienteSolicitudes();
 
-    // Tablas de refresco
-    QTableWidget* tablaCarteleraAdmin;
-    void actualizarTablaPeliculas();
+    // Funciones de sincronización
+    void refrescarSolicitudesAdmin();
+    void refrescarMapaAsientosAdmin();
 
 public:
     MainWindow(QWidget *parent = nullptr);

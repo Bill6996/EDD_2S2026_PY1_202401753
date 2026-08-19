@@ -160,6 +160,21 @@ public:
 
         system("dot -Tpng ../reportes/Matriz_Asientos.dot -o ../reportes/Matriz_Asientos.png");
     }
+
+    // Métodos de consulta para refrescar la interfaz gráfica
+    int getFilas() const { return maxFilas; }
+    int getColumnas() const { return maxColumnas; }
+
+    NodoMatriz* buscarAsiento(int f, int c) {
+        NodoMatriz* cabFila = buscarFila(f);
+        if (!cabFila) return nullptr;
+        NodoMatriz* actual = cabFila->derecha;
+        while (actual != nullptr) {
+            if (actual->columna == c) return actual;
+            actual = actual->derecha;
+        }
+        return nullptr;
+    }
 };
 
 #endif // MATRIZDISPERSA_H
