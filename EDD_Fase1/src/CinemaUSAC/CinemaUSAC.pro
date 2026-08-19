@@ -15,6 +15,8 @@ HEADERS += \
     Beneficio.h \
     ListaPromociones.h \
     ListaSolicitudes.h \
+    MatrizDispersa.h \
+    NodoMatriz.h \
     Pelicula.h \
     Promocion.h \
     Solicitud.h \
