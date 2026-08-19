@@ -3,11 +3,17 @@
 
 #include <QMainWindow>
 #include <QStackedWidget>
+#include <QTabWidget>
 #include <QPushButton>
 #include <QLineEdit>
 #include <QTableWidget>
 #include <QLabel>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QGridLayout>
+#include <QHeaderView>
+#include <QMessageBox>
+#include <QFileDialog>
 
 #include "BSTCartelera.h"
 #include "ListaSolicitudes.h"
@@ -18,18 +24,32 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
 private:
-    // Estructuras globales
     BSTCartelera cartelera;
     ListaSolicitudes solicitudes;
     ListaPromociones promociones;
     MatrizDispersa* matrizActual;
 
-    // Componentes de la interfaz
     QStackedWidget* panelPrincipal;
 
+    // Métodos para construir pantallas y pestañas
     QWidget* crearPanelLogin();
     QWidget* crearPanelAdmin();
     QWidget* crearPanelUsuario();
+
+    // Pestañas de Administrador
+    QWidget* pestanaGestionPeliculas();
+    QWidget* pestanaGestionPromociones();
+    QWidget* pestanaGestionSolicitudes();
+    QWidget* pestanaGestionFunciones();
+
+    // Pestañas de Cliente
+    QWidget* pestanaClienteCartelera();
+    QWidget* pestanaClienteReservas();
+    QWidget* pestanaClienteSolicitudes();
+
+    // Tablas de refresco
+    QTableWidget* tablaCarteleraAdmin;
+    void actualizarTablaPeliculas();
 
 public:
     MainWindow(QWidget *parent = nullptr);
