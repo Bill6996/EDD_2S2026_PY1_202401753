@@ -172,6 +172,47 @@ public:
 
         system("dot -Tpng ../reportes/Matriz_Asientos.dot -o ../reportes/Matriz_Asientos.png");
     }
+
+    // Agregar en la sección private: de MatrizDispersa
+    std::string pelicula;
+    std::string horario;
+    std::string sala;
+
+    // Agregar en la sección public: de MatrizDispersa
+    void setDatosFuncion(std::string p, std::string h, std::string s) {
+        pelicula = p;
+        horario = h;
+        sala = s;
+    }
+
+    std::string getInfoFuncion() const {
+        if (pelicula.empty()) return "Sin función asignada";
+        return "Película: " + pelicula + " | Horario: " + horario + " | Sala: " + sala;
+    }
+
+    // Método para eliminar/desconectar un asiento específico de la matriz dispersa
+    bool eliminarAsiento(int f, int c) {
+        NodoMatriz* cabFila = buscarFila(f);
+        if (!cabFila) return false;
+
+        NodoMatriz* actual = cabFila->derecha;
+        while (actual != nullptr) {
+            if (actual->columna == c) {
+                // Desconectar punteros horizontales
+                if (actual->izquierda) actual->izquierda->derecha = actual->derecha;
+                if (actual->derecha) actual->derecha->izquierda = actual->izquierda;
+
+                // Desconectar punteros verticales
+                if (actual->arriba) actual->arriba->abajo = actual->abajo;
+                if (actual->abajo) actual->abajo->arriba = actual->arriba;
+
+                delete actual;
+                return true;
+            }
+            actual = actual->derecha;
+        }
+        return false;
+    }
 };
 
 #endif // MATRIZDISPERSA_H

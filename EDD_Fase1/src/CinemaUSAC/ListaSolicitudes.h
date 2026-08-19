@@ -88,6 +88,19 @@ public:
         }
         return true;
     }
+
+
+    int getTotalPendientes() {
+        if (cabeza == nullptr) return 0;
+        int count = 0;
+        Solicitud* aux = cabeza;
+        do {
+            count++;
+            aux = aux->siguiente;
+        } while (aux != cabeza);
+        return count;
+    }
+
 };
 
 #endif // LISTASOLICITUDES_H

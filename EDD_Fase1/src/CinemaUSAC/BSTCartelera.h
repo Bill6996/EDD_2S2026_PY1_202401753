@@ -101,12 +101,25 @@ private:
         tabla->setItem(fila, 6, new QTableWidgetItem(QString::fromStdString(nodo->fechaEstreno)));
         tabla->setItem(fila, 7, new QTableWidgetItem(QString::fromStdString(nodo->fechaFin)));
 
-        // Alerta de fecha fin a menos de 7 días
-        QDate fechaFinPeli = QDate::fromString(QString::fromStdString(nodo->fechaFin), "yyyy-MM-dd");
+        // Calcular Estado de Cartelera
+        QDate fEstreno = QDate::fromString(QString::fromStdString(nodo->fechaEstreno), "yyyy-MM-dd");
+        QDate fFin = QDate::fromString(QString::fromStdString(nodo->fechaFin), "yyyy-MM-dd");
         QDate hoy = QDate::currentDate();
-        if (fechaFinPeli.isValid() && hoy.daysTo(fechaFinPeli) <= 7 && hoy.daysTo(fechaFinPeli) >= 0) {
-            for (int col = 0; col < 8; col++) {
-                tabla->item(fila, col)->setBackground(QBrush(QColor(255, 235, 59))); // Amarillo alerta
+
+        QString estado = "En cartelera";
+        if (fEstreno.isValid() && hoy < fEstreno) {
+            estado = "Próximo estreno";
+        } else if (fFin.isValid() && hoy.daysTo(fFin) <= 7 && hoy.daysTo(fFin) >= 0) {
+            estado = "Próximo a retirar";
+        }
+
+        QTableWidgetItem* itemEstado = new QTableWidgetItem(estado);
+        tabla->setItem(fila, 8, itemEstado);
+
+        // Resaltado de Alerta
+        if (estado == "Próximo a retirar") {
+            for (int col = 0; col < 9; col++) {
+                tabla->item(fila, col)->setBackground(QBrush(QColor(255, 235, 59))); // Amarillo
                 tabla->item(fila, col)->setForeground(QBrush(Qt::black));
             }
         }

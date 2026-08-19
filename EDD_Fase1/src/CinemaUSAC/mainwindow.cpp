@@ -1,8 +1,15 @@
 #include "mainwindow.h"
 #include "CargadorCSV.h"
 #include <QInputDialog>
+#include <QHeaderView>
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), matrizActual(nullptr), mapaVisualAdmin(nullptr), lblDetalleSolicitudAdmin(nullptr) {
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent),
+    matrizActual(nullptr),
+    mapaVisualAdmin(nullptr),
+    lblDetalleSolicitudAdmin(nullptr),
+    lblTotalSolicitudesAdmin(nullptr) {
+
     this->setWindowTitle("CinemaUSAC - Sistema de Gestión");
     this->resize(1100, 750);
 
@@ -111,8 +118,8 @@ QWidget* MainWindow::pestanaGestionPeliculas() {
     btnLayout->addWidget(btnCargaCSV);
     btnLayout->addStretch();
 
-    tablaCarteleraAdmin = new QTableWidget(0, 8);
-    QStringList headers = {"CO-PELICULA", "TITULO", "GENERO", "DURACION", "CLASIFICACION", "IDIOMA", "FECHA ESTRENO", "FECHA FIN"};
+    tablaCarteleraAdmin = new QTableWidget(0, 9);
+    QStringList headers = {"CO-PELICULA", "TITULO", "GENERO", "DURACION", "CLASIFICACION", "IDIOMA", "FECHA ESTRENO", "FECHA FIN", "ESTADO CARTELERA"};
     tablaCarteleraAdmin->setHorizontalHeaderLabels(headers);
     tablaCarteleraAdmin->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
@@ -168,7 +175,6 @@ QWidget* MainWindow::pestanaGestionPromociones() {
     topBtns->addWidget(btnAddBeneficio);
     topBtns->addStretch();
 
-    // Visualizador en Árbol para Representar la Lista Circular de Listas Dobles
     QTreeWidget* treePromos = new QTreeWidget();
     treePromos->setColumnCount(4);
     QStringList headers = {"CÓDIGO / ESTRUCTURA", "NOMBRE / TIPO BENEFICIO", "VIGENCIA / VALOR", "DÍAS APLICABLES / DESCRIPCIÓN"};
@@ -178,7 +184,6 @@ QWidget* MainWindow::pestanaGestionPromociones() {
     layout->addLayout(topBtns);
     layout->addWidget(treePromos);
 
-    // 1. Agregar Promoción
     connect(btnAddPromo, &QPushButton::clicked, [this, treePromos]() {
         bool ok;
         QString cod = QInputDialog::getText(this, "Nueva Promoción", "Código de Promoción (ej. Promo_01):", QLineEdit::Normal, "", &ok);
@@ -196,7 +201,6 @@ QWidget* MainWindow::pestanaGestionPromociones() {
         QMessageBox::information(this, "Éxito", "Promoción registrada en la Lista Circular Simple.");
     });
 
-    // 2. Eliminar Promoción
     connect(btnDelPromo, &QPushButton::clicked, [this, treePromos]() {
         bool ok;
         QString cod = QInputDialog::getText(this, "Eliminar Promoción", "Código de la promoción a eliminar:", QLineEdit::Normal, "", &ok);
@@ -210,7 +214,6 @@ QWidget* MainWindow::pestanaGestionPromociones() {
         }
     });
 
-    // 3. Añadir Beneficio a una Promoción
     connect(btnAddBeneficio, &QPushButton::clicked, [this, treePromos]() {
         bool ok;
         QString cod = QInputDialog::getText(this, "Añadir Beneficio", "Código de la Promoción padre (ej. Promo_01):", QLineEdit::Normal, "", &ok);
@@ -242,44 +245,81 @@ QWidget* MainWindow::pestanaGestionSolicitudes() {
     QLabel* lblInfo = new QLabel("Solicitudes Especiales Pendientes");
     lblInfo->setFont(QFont("Arial", 11, QFont::Bold));
 
-    QPushButton* btnRefrescar = new QPushButton("Actualizar Solicitudes");
+    lblTotalSolicitudesAdmin = new QLabel("Total Pendientes: 0");
+    lblTotalSolicitudesAdmin->setStyleSheet("font-weight: bold; color: #4caf50;");
+
     topHeader->addWidget(lblInfo);
     topHeader->addStretch();
-    topHeader->addWidget(btnRefrescar);
+    topHeader->addWidget(lblTotalSolicitudesAdmin);
 
     lblDetalleSolicitudAdmin = new QLabel("No hay solicitudes pendientes.");
     lblDetalleSolicitudAdmin->setStyleSheet("border: 1px solid gray; padding: 15px; background-color: #222; font-size: 13px;");
 
+    QHBoxLayout* navLayout = new QHBoxLayout();
+    QPushButton* btnAnterior = new QPushButton("◄ Anterior (Circular)");
+    QPushButton* btnSiguiente = new QPushButton("Siguiente (Circular) ►");
+    navLayout->addWidget(btnAnterior);
+    navLayout->addWidget(btnSiguiente);
+
     QHBoxLayout* acciones = new QHBoxLayout();
-    QPushButton* btnAceptar = new QPushButton("Aceptar / Atender Solicitud");
+    QPushButton* btnAceptar = new QPushButton("Aprobar Solicitud");
     QPushButton* btnRechazar = new QPushButton("Rechazar Solicitud");
-    acciones->addWidget(btnAceptar); acciones->addWidget(btnRechazar);
+    acciones->addWidget(btnAceptar);
+    acciones->addWidget(btnRechazar);
 
     layout->addLayout(topHeader);
     layout->addWidget(lblDetalleSolicitudAdmin);
+    layout->addLayout(navLayout);
     layout->addLayout(acciones);
     layout->addStretch();
 
-    connect(btnRefrescar, &QPushButton::clicked, [this]() {
-        refrescarSolicitudesAdmin();
-    });
+    static Solicitud* solicitudActualVista = nullptr;
 
-    connect(btnAceptar, &QPushButton::clicked, [this]() {
-        Solicitud* s = solicitudes.getPrimera();
-        if (!s) { QMessageBox::information(this, "Info", "No hay solicitudes pendientes."); return; }
-        s->estado = "Atendida";
-        QMessageBox::information(this, "Atendida", QString("Solicitud #%1 marcada como Atendida.").arg(s->numero));
-        solicitudes.rechazarPrimera();
-        refrescarSolicitudesAdmin();
-    });
-
-    connect(btnRechazar, &QPushButton::clicked, [this]() {
-        if (solicitudes.rechazarPrimera()) {
-            QMessageBox::information(this, "Rechazada", "Solicitud eliminada de la lista.");
+    auto actualizarVistaNavegacion = [this]() {
+        if (!solicitudActualVista) solicitudActualVista = solicitudes.getPrimera();
+        if (solicitudActualVista) {
+            lblDetalleSolicitudAdmin->setText(
+                QString("Solicitud #%1 | Cliente: %2\nTeléfono: %3\nTipo: %4\nDescripción: %5\nEstado: %6")
+                    .arg(solicitudActualVista->numero)
+                    .arg(QString::fromStdString(solicitudActualVista->cliente))
+                    .arg(QString::fromStdString(solicitudActualVista->telefono))
+                    .arg(QString::fromStdString(solicitudActualVista->tipo))
+                    .arg(QString::fromStdString(solicitudActualVista->descripcion))
+                    .arg(QString::fromStdString(solicitudActualVista->estado))
+                );
         } else {
-            QMessageBox::information(this, "Info", "No hay solicitudes pendientes.");
+            lblDetalleSolicitudAdmin->setText("No hay solicitudes pendientes en la lista.");
         }
+        if (lblTotalSolicitudesAdmin) {
+            lblTotalSolicitudesAdmin->setText(QString("Total Pendientes: %1").arg(solicitudes.getTotalPendientes()));
+        }
+    };
+
+    connect(btnSiguiente, &QPushButton::clicked, [this, actualizarVistaNavegacion]() {
+        if (solicitudActualVista) solicitudActualVista = solicitudActualVista->siguiente;
+        actualizarVistaNavegacion();
+    });
+
+    connect(btnAnterior, &QPushButton::clicked, [this, actualizarVistaNavegacion]() {
+        if (solicitudActualVista) solicitudActualVista = solicitudActualVista->anterior;
+        actualizarVistaNavegacion();
+    });
+
+    connect(btnAceptar, &QPushButton::clicked, [this, actualizarVistaNavegacion]() {
+        Solicitud* s = solicitudes.getPrimera();
+        if (!s) return;
+        s->estado = "En proceso / Atendida";
+        QMessageBox::information(this, "Aprobada", QString("Solicitud #%1 aprobada.").arg(s->numero));
+        solicitudActualVista = nullptr;
         refrescarSolicitudesAdmin();
+    });
+
+    connect(btnRechazar, &QPushButton::clicked, [this, actualizarVistaNavegacion]() {
+        if (solicitudes.rechazarPrimera()) {
+            QMessageBox::information(this, "Rechazada", "Solicitud rechazada y removida.");
+            solicitudActualVista = nullptr;
+            refrescarSolicitudesAdmin();
+        }
     });
 
     return tab;
@@ -290,24 +330,42 @@ QWidget* MainWindow::pestanaGestionFunciones() {
     QVBoxLayout* layout = new QVBoxLayout(tab);
 
     QGridLayout* gridConfig = new QGridLayout();
-    QLineEdit* txtFilas = new QLineEdit("5"); txtFilas->setPlaceholderText("Filas (ej. 5)");
-    QLineEdit* txtCols = new QLineEdit("8"); txtCols->setPlaceholderText("Columnas (ej. 8)");
-    QPushButton* btnCrear = new QPushButton("Crear Función");
-    QPushButton* btnEliminarFuncion = new QPushButton("Eliminar Función Actual");
+    QLineEdit* txtPeli = new QLineEdit(); txtPeli->setPlaceholderText("Película (ej. P001)");
+    QLineEdit* txtHorario = new QLineEdit(); txtHorario->setPlaceholderText("Horario (ej. 17:00)");
+    QLineEdit* txtSala = new QLineEdit(); txtSala->setPlaceholderText("Sala (ej. Sala 1)");
+    QLineEdit* txtFilas = new QLineEdit("5"); txtFilas->setPlaceholderText("Filas");
+    QLineEdit* txtCols = new QLineEdit("8"); txtCols->setPlaceholderText("Columnas");
 
-    gridConfig->addWidget(new QLabel("Filas:"), 0, 0); gridConfig->addWidget(txtFilas, 0, 1);
-    gridConfig->addWidget(new QLabel("Columnas:"), 0, 2); gridConfig->addWidget(txtCols, 0, 3);
-    gridConfig->addWidget(btnCrear, 0, 4);
-    gridConfig->addWidget(btnEliminarFuncion, 0, 5);
+    QPushButton* btnCrear = new QPushButton("Crear Función");
+    QPushButton* btnEliminarAsiento = new QPushButton("Eliminar Asiento Específico");
+    QPushButton* btnEliminarFuncion = new QPushButton("Eliminar Función Completa");
+
+    gridConfig->addWidget(new QLabel("Película:"), 0, 0); gridConfig->addWidget(txtPeli, 0, 1);
+    gridConfig->addWidget(new QLabel("Horario:"), 0, 2); gridConfig->addWidget(txtHorario, 0, 3);
+    gridConfig->addWidget(new QLabel("Sala:"), 0, 4); gridConfig->addWidget(txtSala, 0, 5);
+
+    gridConfig->addWidget(new QLabel("Filas:"), 1, 0); gridConfig->addWidget(txtFilas, 1, 1);
+    gridConfig->addWidget(new QLabel("Columnas:"), 1, 2); gridConfig->addWidget(txtCols, 1, 3);
+    gridConfig->addWidget(btnCrear, 1, 4, 1, 2);
+
+    QHBoxLayout* actionBtns = new QHBoxLayout();
+    actionBtns->addWidget(btnEliminarAsiento);
+    actionBtns->addWidget(btnEliminarFuncion);
+
+    QLabel* lblHeaderFuncion = new QLabel("Función Activa: Ninguna");
+    lblHeaderFuncion->setFont(QFont("Arial", 11, QFont::Bold));
+    lblHeaderFuncion->setStyleSheet("color: #2196f3; padding: 5px;");
 
     mapaVisualAdmin = new QTableWidget();
     mapaVisualAdmin->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
     layout->addLayout(gridConfig);
-    layout->addWidget(new QLabel("Mapa de Asientos Ocupados (Matriz Dispersa):"));
+    layout->addWidget(lblHeaderFuncion);
+    layout->addLayout(actionBtns);
+    layout->addWidget(new QLabel("Mapa de Asientos (Matriz Dispersa):"));
     layout->addWidget(mapaVisualAdmin);
 
-    connect(btnCrear, &QPushButton::clicked, [this, txtFilas, txtCols]() {
+    connect(btnCrear, &QPushButton::clicked, [this, txtPeli, txtHorario, txtSala, txtFilas, txtCols, lblHeaderFuncion]() {
         int f = txtFilas->text().toInt();
         int c = txtCols->text().toInt();
         if (f <= 0 || c <= 0) { f = 5; c = 8; }
@@ -315,19 +373,46 @@ QWidget* MainWindow::pestanaGestionFunciones() {
         if (matrizActual) delete matrizActual;
         matrizActual = new MatrizDispersa(f, c);
 
+        QString p = txtPeli->text().trimmed().isEmpty() ? "P001" : txtPeli->text().trimmed();
+        QString h = txtHorario->text().trimmed().isEmpty() ? "17:00" : txtHorario->text().trimmed();
+        QString s = txtSala->text().trimmed().isEmpty() ? "Sala 1" : txtSala->text().trimmed();
+
+        matrizActual->setDatosFuncion(p.toStdString(), h.toStdString(), s.toStdString());
+        lblHeaderFuncion->setText(QString::fromStdString(matrizActual->getInfoFuncion()));
+
         refrescarMapaAsientosAdmin();
-        QMessageBox::information(this, "Éxito", QString("Función creada con sala de %1 filas x %2 columnas.").arg(f).arg(c));
+        QMessageBox::information(this, "Éxito", "Nueva función creada. La matriz anterior fue sobreescrita.");
     });
 
-    connect(btnEliminarFuncion, &QPushButton::clicked, [this]() {
+    connect(btnEliminarAsiento, &QPushButton::clicked, [this]() {
+        if (!matrizActual) {
+            QMessageBox::warning(this, "Error", "No existe función activa.");
+            return;
+        }
+        bool ok;
+        int f = QInputDialog::getInt(this, "Eliminar Asiento", "Número de Fila:", 1, 1, matrizActual->getFilas(), 1, &ok);
+        if (!ok) return;
+        int c = QInputDialog::getInt(this, "Eliminar Asiento", "Número de Columna:", 1, 1, matrizActual->getColumnas(), 1, &ok);
+        if (!ok) return;
+
+        if (matrizActual->eliminarAsiento(f, c)) {
+            refrescarMapaAsientosAdmin();
+            QMessageBox::information(this, "Éxito", QString("El asiento F%1-C%2 ha sido eliminado de la matriz dispersa.").arg(f).arg(c));
+        } else {
+            QMessageBox::warning(this, "Error", "No se encontró el nodo del asiento especificado.");
+        }
+    });
+
+    connect(btnEliminarFuncion, &QPushButton::clicked, [this, lblHeaderFuncion]() {
         if (matrizActual) {
             delete matrizActual;
             matrizActual = nullptr;
+            lblHeaderFuncion->setText("Función Activa: Ninguna");
             if (mapaVisualAdmin) {
                 mapaVisualAdmin->setRowCount(0);
                 mapaVisualAdmin->setColumnCount(0);
             }
-            QMessageBox::information(this, "Eliminada", "La función y su matriz dispersa actual han sido eliminadas.");
+            QMessageBox::information(this, "Eliminada", "La función y su matriz dispersa han sido eliminadas.");
         }
     });
 
@@ -349,6 +434,9 @@ void MainWindow::refrescarSolicitudesAdmin() {
             );
     } else {
         lblDetalleSolicitudAdmin->setText("No hay solicitudes pendientes en la lista.");
+    }
+    if (lblTotalSolicitudesAdmin) {
+        lblTotalSolicitudesAdmin->setText(QString("Total Pendientes: %1").arg(solicitudes.getTotalPendientes()));
     }
 }
 
@@ -420,8 +508,8 @@ QWidget* MainWindow::pestanaClienteCartelera() {
     searchLayout->addWidget(btnBuscar);
     searchLayout->addWidget(btnVer);
 
-    QTableWidget* tablaUser = new QTableWidget(0, 8);
-    tablaUser->setHorizontalHeaderLabels({"CÓDIGO", "TÍTULO", "GÉNERO", "DURACIÓN", "CLASIFICACIÓN", "IDIOMA", "ESTRENO", "FIN"});
+    QTableWidget* tablaUser = new QTableWidget(0, 9);
+    tablaUser->setHorizontalHeaderLabels({"CÓDIGO", "TÍTULO", "GÉNERO", "DURACIÓN", "CLASIFICACIÓN", "IDIOMA", "ESTRENO", "FIN", "ESTADO CARTELERA"});
     tablaUser->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
     layout->addLayout(searchLayout);

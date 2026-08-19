@@ -35,6 +35,7 @@ private:
     QTableWidget* tablaCarteleraAdmin;
     QTableWidget* mapaVisualAdmin;
     QLabel* lblDetalleSolicitudAdmin;
+    QLabel* lblTotalSolicitudesAdmin;
 
     // Métodos para construir pantallas y pestañas
     QWidget* crearPanelLogin();
