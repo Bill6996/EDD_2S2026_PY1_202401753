@@ -31,6 +31,16 @@ public:
         }
     }
 
+    Solicitud* buscarPorTelefono(std::string tel) {
+        if (cabeza == nullptr) return nullptr;
+        Solicitud* aux = cabeza;
+        do {
+            if (aux->telefono == tel) return aux;
+            aux = aux->siguiente;
+        } while (aux != cabeza);
+        return nullptr;
+    }
+
     void generarReporteGraphviz() {
         std::ofstream file("../reportes/Lista_Solicitudes.dot");
         file << "digraph ListaSolicitudes {\n";
@@ -61,9 +71,7 @@ public:
         system("dot -Tpng ../reportes/Lista_Solicitudes.dot -o ../reportes/Lista_Solicitudes.png");
     }
 
-    Solicitud* getPrimera() {
-        return cabeza;
-    }
+    Solicitud* getPrimera() { return cabeza; }
 
     bool rechazarPrimera() {
         if (cabeza == nullptr) return false;
@@ -79,17 +87,6 @@ public:
             delete temp;
         }
         return true;
-    }
-
-    int getTotalPendientes() {
-        if (cabeza == nullptr) return 0;
-        int count = 0;
-        Solicitud* aux = cabeza;
-        do {
-            count++;
-            aux = aux->siguiente;
-        } while (aux != cabeza);
-        return count;
     }
 };
 

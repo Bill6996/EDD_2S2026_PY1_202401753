@@ -6,6 +6,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <QTableWidget>
+#include <QDateTime>
 
 class BSTCartelera {
 private:
@@ -19,6 +20,53 @@ private:
             nodo->derecha = insertarRecursivo(nodo->derecha, nuevo);
         }
         return nodo;
+    }
+
+    Pelicula* obtenerMinimo(Pelicula* nodo) {
+        Pelicula* actual = nodo;
+        while (actual && actual->izquierda != nullptr) {
+            actual = actual->izquierda;
+        }
+        return actual;
+    }
+
+    Pelicula* eliminarRecursivo(Pelicula* nodo, std::string cod) {
+        if (nodo == nullptr) return nodo;
+
+        if (cod < nodo->codigo) {
+            nodo->izquierda = eliminarRecursivo(nodo->izquierda, cod);
+        } else if (cod > nodo->codigo) {
+            nodo->derecha = eliminarRecursivo(nodo->derecha, cod);
+        } else {
+            // Nodo con un solo hijo o sin hijos
+            if (nodo->izquierda == nullptr) {
+                Pelicula* temp = nodo->derecha;
+                delete nodo;
+                return temp;
+            } else if (nodo->derecha == nullptr) {
+                Pelicula* temp = nodo->izquierda;
+                delete nodo;
+                return temp;
+            }
+            // Nodo con dos hijos
+            Pelicula* temp = obtenerMinimo(nodo->derecha);
+            nodo->codigo = temp->codigo;
+            nodo->titulo = temp->titulo;
+            nodo->genero = temp->genero;
+            nodo->duracion = temp->duracion;
+            nodo->clasificacion = temp->clasificacion;
+            nodo->idioma = temp->idioma;
+            nodo->fechaEstreno = temp->fechaEstreno;
+            nodo->fechaFin = temp->fechaFin;
+            nodo->derecha = eliminarRecursivo(nodo->derecha, temp->codigo);
+        }
+        return nodo;
+    }
+
+    Pelicula* buscarRecursivo(Pelicula* nodo, std::string cod) {
+        if (nodo == nullptr || nodo->codigo == cod) return nodo;
+        if (cod < nodo->codigo) return buscarRecursivo(nodo->izquierda, cod);
+        return buscarRecursivo(nodo->derecha, cod);
     }
 
     void generarGraphvizRecursivo(Pelicula* nodo, std::ofstream& file) {
@@ -52,8 +100,18 @@ private:
         tabla->setItem(fila, 5, new QTableWidgetItem(QString::fromStdString(nodo->idioma)));
         tabla->setItem(fila, 6, new QTableWidgetItem(QString::fromStdString(nodo->fechaEstreno)));
         tabla->setItem(fila, 7, new QTableWidgetItem(QString::fromStdString(nodo->fechaFin)));
-        fila++;
 
+        // Alerta de fecha fin a menos de 7 días
+        QDate fechaFinPeli = QDate::fromString(QString::fromStdString(nodo->fechaFin), "yyyy-MM-dd");
+        QDate hoy = QDate::currentDate();
+        if (fechaFinPeli.isValid() && hoy.daysTo(fechaFinPeli) <= 7 && hoy.daysTo(fechaFinPeli) >= 0) {
+            for (int col = 0; col < 8; col++) {
+                tabla->item(fila, col)->setBackground(QBrush(QColor(255, 235, 59))); // Amarillo alerta
+                tabla->item(fila, col)->setForeground(QBrush(Qt::black));
+            }
+        }
+
+        fila++;
         inordenTabla(nodo->derecha, tabla, fila);
     }
 
@@ -64,6 +122,14 @@ public:
                   std::string clas, std::string idio, std::string fEstreno, std::string fFin) {
         Pelicula* nuevo = new Pelicula(cod, tit, gen, dur, clas, idio, fEstreno, fFin);
         raiz = insertarRecursivo(raiz, nuevo);
+    }
+
+    void eliminar(std::string cod) {
+        raiz = eliminarRecursivo(raiz, cod);
+    }
+
+    Pelicula* buscar(std::string cod) {
+        return buscarRecursivo(raiz, cod);
     }
 
     void generarReporteGraphviz() {
