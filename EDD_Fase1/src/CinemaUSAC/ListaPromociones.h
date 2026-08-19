@@ -1,9 +1,12 @@
 #ifndef LISTAPROMOCIONES_H
 #define LISTAPROMOCIONES_H
+
 #include "Promocion.h"
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
 
 class ListaPromociones {
 private:
@@ -12,8 +15,9 @@ private:
 public:
     ListaPromociones() : cabeza(nullptr) {}
 
-    void insertar(std::string cod, std::string nom, std::string vig, std::string dias) {
-        Promocion* nuevo = new Promocion(cod, nom, vig, dias);
+    // Inserción en Lista Circular Simple
+    void insertar(std::string cod, std::string nom, std::string fInicio, std::string fFin, std::string dias) {
+        Promocion* nuevo = new Promocion(cod, nom, fInicio + " a " + fFin, dias);
         if (cabeza == nullptr) {
             cabeza = nuevo;
             cabeza->siguiente = cabeza;
@@ -27,6 +31,7 @@ public:
         }
     }
 
+    // Buscar una promoción por código
     Promocion* buscar(std::string cod) {
         if (cabeza == nullptr) return nullptr;
         Promocion* aux = cabeza;
@@ -35,6 +40,79 @@ public:
             aux = aux->siguiente;
         } while (aux != cabeza);
         return nullptr;
+    }
+
+    // Eliminación manual en Lista Circular Simple
+    bool eliminar(std::string cod) {
+        if (cabeza == nullptr) return false;
+
+        Promocion* actual = cabeza;
+        Promocion* anterior = nullptr;
+
+        // Buscar el nodo y su anterior
+        do {
+            if (actual->codigo == cod) break;
+            anterior = actual;
+            actual = actual->siguiente;
+        } while (actual != cabeza);
+
+        // Si no se encontró
+        if (actual->codigo != cod) return false;
+
+        // Si es el único nodo de la lista
+        if (actual == cabeza && actual->siguiente == cabeza) {
+            delete cabeza;
+            cabeza = nullptr;
+            return true;
+        }
+
+        // Si el nodo a eliminar es la cabeza
+        if (actual == cabeza) {
+            Promocion* ultimo = cabeza;
+            while (ultimo->siguiente != cabeza) {
+                ultimo = ultimo->siguiente;
+            }
+            cabeza = cabeza->siguiente;
+            ultimo->siguiente = cabeza;
+            delete actual;
+        } else {
+            // Si es un nodo intermedio o final
+            anterior->siguiente = actual->siguiente;
+            delete actual;
+        }
+
+        return true;
+    }
+
+    // Renderizar la Lista de Listas en el TreeWidget de Qt
+    void cargarEnTreeWidget(QTreeWidget* tree) {
+        tree->clear();
+        if (cabeza == nullptr) return;
+
+        Promocion* aux = cabeza;
+        do {
+            QTreeWidgetItem* promoItem = new QTreeWidgetItem(tree);
+            promoItem->setText(0, QString::fromStdString(aux->codigo));
+            promoItem->setText(1, QString::fromStdString(aux->nombre));
+            promoItem->setText(2, QString::fromStdString(aux->vigencia));
+            promoItem->setText(3, QString::fromStdString(aux->diasAplicables));
+            promoItem->setBackground(0, QBrush(QColor(33, 150, 243, 40))); // Resaltado Azul
+
+            // Recorrer lista doblemente enlazada de beneficios
+            Beneficio* ben = aux->listaBeneficios;
+            while (ben != nullptr) {
+                QTreeWidgetItem* benItem = new QTreeWidgetItem(promoItem);
+                benItem->setText(0, "  └─ [BENEFICIO]");
+                benItem->setText(1, QString::fromStdString(ben->tipo));
+                benItem->setText(2, QString::fromStdString(ben->valor));
+                benItem->setText(3, QString::fromStdString(ben->descripcion));
+                benItem->setBackground(0, QBrush(QColor(255, 235, 59, 30))); // Resaltado Amarillo
+                ben = ben->siguiente;
+            }
+
+            promoItem->setExpanded(true); // Desplegar beneficios automáticamente
+            aux = aux->siguiente;
+        } while (aux != cabeza);
     }
 
     void generarReporteGraphviz() {
@@ -57,7 +135,8 @@ public:
             aux = cabeza;
             do {
                 file << "  promo_" << aux->codigo << " [label=\""
-                     << aux->nombre << "\\n(" << aux->codigo << ")\", style=filled, fillcolor=lightblue];\n";
+                     << aux->nombre << "\\n(" << aux->codigo << ")\\nVigencia: " << aux->vigencia
+                     << "\", style=filled, fillcolor=lightblue];\n";
 
                 file << "  promo_" << aux->codigo << " -> promo_" << aux->siguiente->codigo << ";\n";
 

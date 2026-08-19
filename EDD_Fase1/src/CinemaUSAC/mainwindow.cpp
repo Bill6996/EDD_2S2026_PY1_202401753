@@ -159,46 +159,76 @@ QWidget* MainWindow::pestanaGestionPromociones() {
     QVBoxLayout* layout = new QVBoxLayout(tab);
 
     QHBoxLayout* topBtns = new QHBoxLayout();
-    QPushButton* btnAddPromo = new QPushButton("Agregar Una Promoción");
+    QPushButton* btnAddPromo = new QPushButton("Agregar Promoción");
+    QPushButton* btnDelPromo = new QPushButton("Eliminar Promoción");
     QPushButton* btnAddBeneficio = new QPushButton("Añadir Beneficio");
+
     topBtns->addWidget(btnAddPromo);
+    topBtns->addWidget(btnDelPromo);
     topBtns->addWidget(btnAddBeneficio);
     topBtns->addStretch();
 
-    QTableWidget* tablaPromos = new QTableWidget(0, 3);
-    tablaPromos->setHorizontalHeaderLabels({"CÓDIGO", "NOMBRE", "VIGENCIA"});
-    tablaPromos->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    // Visualizador en Árbol para Representar la Lista Circular de Listas Dobles
+    QTreeWidget* treePromos = new QTreeWidget();
+    treePromos->setColumnCount(4);
+    QStringList headers = {"CÓDIGO / ESTRUCTURA", "NOMBRE / TIPO BENEFICIO", "VIGENCIA / VALOR", "DÍAS APLICABLES / DESCRIPCIÓN"};
+    treePromos->setHeaderLabels(headers);
+    treePromos->header()->setSectionResizeMode(QHeaderView::Stretch);
 
     layout->addLayout(topBtns);
-    layout->addWidget(tablaPromos);
+    layout->addWidget(treePromos);
 
-    connect(btnAddPromo, &QPushButton::clicked, [this, tablaPromos]() {
+    // 1. Agregar Promoción
+    connect(btnAddPromo, &QPushButton::clicked, [this, treePromos]() {
         bool ok;
-        QString cod = QInputDialog::getText(this, "Promoción", "Código (ej. Promo_01):", QLineEdit::Normal, "", &ok);
+        QString cod = QInputDialog::getText(this, "Nueva Promoción", "Código de Promoción (ej. Promo_01):", QLineEdit::Normal, "", &ok);
         if (!ok || cod.isEmpty()) return;
-        QString nom = QInputDialog::getText(this, "Promoción", "Nombre de la Promoción:", QLineEdit::Normal, "", &ok);
 
-        promociones.insertar(cod.toStdString(), nom.toStdString(), "Vigente", "Todos los dias");
+        QString nom = QInputDialog::getText(this, "Nueva Promoción", "Nombre (ej. Martes de Locura):", QLineEdit::Normal, "", &ok);
+        if (!ok || nom.isEmpty()) return;
 
-        int row = tablaPromos->rowCount();
-        tablaPromos->insertRow(row);
-        tablaPromos->setItem(row, 0, new QTableWidgetItem(cod));
-        tablaPromos->setItem(row, 1, new QTableWidgetItem(nom));
-        tablaPromos->setItem(row, 2, new QTableWidgetItem("Vigente"));
+        QString fIni = QInputDialog::getText(this, "Nueva Promoción", "Fecha Inicio (YYYY-MM-DD):", QLineEdit::Normal, "2026-08-01", &ok);
+        QString fFin = QInputDialog::getText(this, "Nueva Promoción", "Fecha Fin (YYYY-MM-DD):", QLineEdit::Normal, "2026-12-31", &ok);
+        QString dias = QInputDialog::getText(this, "Nueva Promoción", "Días aplicables (ej. Martes, Jueves):", QLineEdit::Normal, "Martes", &ok);
+
+        promociones.insertar(cod.toStdString(), nom.toStdString(), fIni.toStdString(), fFin.toStdString(), dias.toStdString());
+        promociones.cargarEnTreeWidget(treePromos);
+        QMessageBox::information(this, "Éxito", "Promoción registrada en la Lista Circular Simple.");
     });
 
-    connect(btnAddBeneficio, &QPushButton::clicked, [this]() {
+    // 2. Eliminar Promoción
+    connect(btnDelPromo, &QPushButton::clicked, [this, treePromos]() {
         bool ok;
-        QString cod = QInputDialog::getText(this, "Beneficio", "Código de Promoción a la que pertenece:", QLineEdit::Normal, "", &ok);
+        QString cod = QInputDialog::getText(this, "Eliminar Promoción", "Código de la promoción a eliminar:", QLineEdit::Normal, "", &ok);
+        if (ok && !cod.isEmpty()) {
+            if (promociones.eliminar(cod.toStdString())) {
+                promociones.cargarEnTreeWidget(treePromos);
+                QMessageBox::information(this, "Éxito", "Promoción eliminada de la lista circular.");
+            } else {
+                QMessageBox::warning(this, "Error", "No se encontró ninguna promoción con ese código.");
+            }
+        }
+    });
+
+    // 3. Añadir Beneficio a una Promoción
+    connect(btnAddBeneficio, &QPushButton::clicked, [this, treePromos]() {
+        bool ok;
+        QString cod = QInputDialog::getText(this, "Añadir Beneficio", "Código de la Promoción padre (ej. Promo_01):", QLineEdit::Normal, "", &ok);
         if (!ok || cod.isEmpty()) return;
+
         Promocion* p = promociones.buscar(cod.toStdString());
         if (!p) {
             QMessageBox::warning(this, "Error", "La promoción especificada no existe.");
             return;
         }
-        QString desc = QInputDialog::getText(this, "Beneficio", "Descripción del beneficio:", QLineEdit::Normal, "", &ok);
-        p->agregarBeneficio("Descuento", desc.toStdString(), "10%");
-        QMessageBox::information(this, "Éxito", "Beneficio agregado a la promoción.");
+
+        QString tipo = QInputDialog::getText(this, "Nuevo Beneficio", "Tipo de beneficio (descuento, combo, 2x1):", QLineEdit::Normal, "2x1", &ok);
+        QString desc = QInputDialog::getText(this, "Nuevo Beneficio", "Descripción del beneficio:", QLineEdit::Normal, "Llevate el segundo boleto gratis", &ok);
+        QString val = QInputDialog::getText(this, "Nuevo Beneficio", "Valor (ej. 5%, 10%, NA):", QLineEdit::Normal, "NA", &ok);
+
+        p->agregarBeneficio(tipo.toStdString(), desc.toStdString(), val.toStdString());
+        promociones.cargarEnTreeWidget(treePromos);
+        QMessageBox::information(this, "Éxito", "Beneficio agregado a la lista doblemente enlazada de la promoción.");
     });
 
     return tab;
