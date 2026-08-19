@@ -12,8 +12,11 @@ SOURCES += \
 
 HEADERS += \
     BSTCartelera.h \
+    Beneficio.h \
+    ListaPromociones.h \
     ListaSolicitudes.h \
     Pelicula.h \
+    Promocion.h \
     Solicitud.h \
     mainwindow.h
 
