@@ -5,6 +5,9 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <QCoreApplication>
+#include <QDir>
+#include <QProcess>
 
 class ListaSolicitudes {
 private:
@@ -42,7 +45,13 @@ public:
     }
 
     void generarReporteGraphviz() {
-        std::ofstream file("../reportes/Lista_Solicitudes.dot");
+        QString appPath = QCoreApplication::applicationDirPath();
+        QDir().mkpath(appPath + "/reportes");
+
+        QString dotFile = appPath + "/reportes/Lista_Solicitudes.dot";
+        QString pngFile = appPath + "/reportes/Lista_Solicitudes.png";
+
+        std::ofstream file(dotFile.toStdString());
         file << "digraph ListaSolicitudes {\n";
         file << "  rankdir=LR;\n";
         file << "  node [shape=circle, fontname=\"Arial\", style=filled, fillcolor=lightyellow];\n";
@@ -59,18 +68,17 @@ public:
                      << "Estado: " << aux->estado << "\"];\n";
 
                 file << "  node_" << aux->numero << " -> node_" << aux->siguiente->numero << " [dir=both];\n";
-
                 aux = aux->siguiente;
             } while (aux != cabeza);
         }
 
-        // Contador total de pendientes
         file << "  counter [label=\"Total Pendientes: " << getTotalPendientes() << "\", shape=note, style=filled, fillcolor=lightblue];\n";
-
         file << "}\n";
         file.close();
 
-        system("dot -Tpng ../reportes/Lista_Solicitudes.dot -o ../reportes/Lista_Solicitudes.png");
+        QProcess process;
+        process.start("dot", QStringList() << "-Tpng" << dotFile << "-o" << pngFile);
+        process.waitForFinished(3000);
     }
 
     Solicitud* getPrimera() { return cabeza; }

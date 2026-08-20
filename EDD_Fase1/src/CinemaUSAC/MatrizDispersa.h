@@ -4,6 +4,9 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <QCoreApplication>
+#include <QDir>
+#include <QProcess>
 
 class MatrizDispersa {
 private:
@@ -115,33 +118,56 @@ public:
     }
 
     void generarReporteGraphviz() {
-        std::ofstream file("../reportes/Matriz_Asientos.dot");
+        QString appPath = QCoreApplication::applicationDirPath();
+        QDir().mkpath(appPath + "/reportes");
+
+        QString dotFile = appPath + "/reportes/Matriz_Asientos.dot";
+        QString pngFile = appPath + "/reportes/Matriz_Asientos.png";
+
+        std::ofstream file(dotFile.toStdString());
         file << "digraph MatrizDispersa {\n";
         file << "  node [fontname=\"Arial\"];\n";
         file << "  graph [splines=ortho];\n";
 
-        // Título dinámico
+        // Título dinámico del reporte
         std::string titulo = "Función: " + (pelicula.empty() ? "Sin asignar" : pelicula) +
                              " - " + (horario.empty() ? "00:00" : horario) +
                              " - " + (sala.empty() ? "Sala 1" : sala);
         file << "  labelloc=\"t\";\n";
         file << "  label=\"" << titulo << "\";\n";
 
+        // Nodo Raíz de la Matriz
         file << "  root [label=\"Funcion\", group=0, shape=box, style=filled, fillcolor=orange];\n";
 
+        // Cabeceras de Columnas (C1, C2, C3...)
         for (int j = 1; j <= maxColumnas; j++) {
             file << "  col_" << j << " [label=\"C" << j << "\", group=" << j << ", shape=box, style=filled, fillcolor=yellow];\n";
         }
 
+        // Conectar Raíz con Cabecera de Columnas y entre sí
+        if (maxColumnas > 0) file << "  root -> col_1;\n";
+        for (int j = 1; j < maxColumnas; j++) {
+            file << "  col_" << j << " -> col_" << (j + 1) << ";\n";
+        }
+
+        // Alinear horizontalmente las columnas con la raíz
+        file << "  { rank=same; root; ";
+        for (int j = 1; j <= maxColumnas; j++) file << "col_" << j << "; ";
+        file << "}\n";
+
         int ocupados = 0;
+
+        // Cabeceras de Filas y declaración de nodos ocupados
         for (int i = 1; i <= maxFilas; i++) {
             file << "  row_" << i << " [label=\"F" << i << "\", group=0, shape=box, style=filled, fillcolor=yellow];\n";
+
             NodoMatriz* fHead = buscarFila(i);
             NodoMatriz* curr = (fHead) ? fHead->derecha : nullptr;
 
             while (curr != nullptr) {
                 if (curr->ocupado) {
                     ocupados++;
+                    // group=curr->columna obliga a Graphviz a alinear verticalmente el nodo en su columna real
                     file << "  node_" << i << "_" << curr->columna
                          << " [label=\"" << curr->cliente << "\", group=" << curr->columna
                          << ", shape=circle, style=filled, fillcolor=lightpink];\n";
@@ -150,26 +176,48 @@ public:
             }
         }
 
-        file << "  { rank=same; root; ";
-        for (int j = 1; j <= maxColumnas; j++) file << "col_" << j << "; ";
-        file << "}\n";
+        // Conectar Raíz con Cabecera de Filas
+        if (maxFilas > 0) file << "  root -> row_1;\n";
+        for (int i = 1; i < maxFilas; i++) {
+            file << "  row_" << i << " -> row_" << (i + 1) << ";\n";
+        }
 
+        // 1. Enlaces Horizontales (Fila -> Nodos)
         for (int i = 1; i <= maxFilas; i++) {
             file << "  { rank=same; row_" << i << "; ";
-            NodoMatriz* curr = buscarFila(i)->derecha;
+            NodoMatriz* fHead = buscarFila(i);
+            NodoMatriz* curr = (fHead) ? fHead->derecha : nullptr;
+
+            std::string prev = "row_" + std::to_string(i);
             while (curr != nullptr) {
-                file << "node_" << i << "_" << curr->columna << "; ";
+                if (curr->ocupado) {
+                    std::string actual = "node_" + std::to_string(i) + "_" + std::to_string(curr->columna);
+                    file << actual << "; ";
+                    file << "  " << prev << " -> " << actual << " [dir=both];\n";
+                    prev = actual;
+                }
                 curr = curr->derecha;
             }
             file << "}\n";
         }
 
-        if (maxColumnas > 0) file << "  root -> col_1;\n";
-        if (maxFilas > 0) file << "  root -> row_1;\n";
+        // 2. Enlaces Verticales (Columna -> Nodos) <--- CORRIGE LA ALINEACIÓN DE COLUMNA
+        for (int j = 1; j <= maxColumnas; j++) {
+            NodoMatriz* cHead = buscarColumna(j);
+            NodoMatriz* curr = (cHead) ? cHead->abajo : nullptr;
 
-        for (int j = 1; j < maxColumnas; j++) file << "  col_" << j << " -> col_" << (j + 1) << ";\n";
-        for (int i = 1; i < maxFilas; i++) file << "  row_" << i << " -> row_" << (i + 1) << ";\n";
+            std::string prev = "col_" + std::to_string(j);
+            while (curr != nullptr) {
+                if (curr->ocupado) {
+                    std::string actual = "node_" + std::to_string(curr->fila) + "_" + std::to_string(j);
+                    file << "  " << prev << " -> " << actual << " [dir=both];\n";
+                    prev = actual;
+                }
+                curr = curr->abajo;
+            }
+        }
 
+        // Estadísticas de ocupación
         int total = maxFilas * maxColumnas;
         int libres = total - ocupados;
         file << "  info [label=\"Estadísticas:\\nTotal Asientos: " << total << "\\nReservados: " << ocupados << "\\nLibres: " << libres << "\", shape=note, style=filled, fillcolor=lightgray];\n";
@@ -177,7 +225,9 @@ public:
         file << "}\n";
         file.close();
 
-        system("dot -Tpng ../reportes/Matriz_Asientos.dot -o ../reportes/Matriz_Asientos.png");
+        QProcess process;
+        process.start("dot", QStringList() << "-Tpng" << dotFile << "-o" << pngFile);
+        process.waitForFinished(3000);
     }
 
     // Agregar en la sección private: de MatrizDispersa

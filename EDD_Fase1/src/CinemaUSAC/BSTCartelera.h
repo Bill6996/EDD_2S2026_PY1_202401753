@@ -7,6 +7,11 @@
 #include <cstdlib>
 #include <QTableWidget>
 #include <QDateTime>
+#include <QCoreApplication>
+#include <QDir>
+#include <QDate>
+#include <QProcess>
+
 
 class BSTCartelera {
 private:
@@ -38,7 +43,7 @@ private:
         } else if (cod > nodo->codigo) {
             nodo->derecha = eliminarRecursivo(nodo->derecha, cod);
         } else {
-            // Nodo con un solo hijo o sin hijos
+            // Caso 1 y 2: Un solo hijo o sin hijos
             if (nodo->izquierda == nullptr) {
                 Pelicula* temp = nodo->derecha;
                 delete nodo;
@@ -48,7 +53,7 @@ private:
                 delete nodo;
                 return temp;
             }
-            // Nodo con dos hijos
+            // Caso 3: Dos hijos
             Pelicula* temp = obtenerMinimo(nodo->derecha);
             nodo->codigo = temp->codigo;
             nodo->titulo = temp->titulo;
@@ -71,7 +76,6 @@ private:
 
     void generarGraphvizRecursivo(Pelicula* nodo, std::ofstream& file) {
         if (nodo != nullptr) {
-            // Lógica de color según requerimiento
             QDate fFin = QDate::fromString(QString::fromStdString(nodo->fechaFin), "yyyy-MM-dd");
             QDate hoy = QDate::currentDate();
             std::string color = "lightgreen"; // Verde: en cartelera
@@ -109,12 +113,24 @@ private:
         tabla->setItem(fila, 6, new QTableWidgetItem(QString::fromStdString(nodo->fechaEstreno)));
         tabla->setItem(fila, 7, new QTableWidgetItem(QString::fromStdString(nodo->fechaFin)));
 
-        // Alerta de fecha fin a menos de 7 días
-        QDate fechaFinPeli = QDate::fromString(QString::fromStdString(nodo->fechaFin), "yyyy-MM-dd");
+        // Calcular Estado de Cartelera para la columna 9
+        QDate fEstreno = QDate::fromString(QString::fromStdString(nodo->fechaEstreno), "yyyy-MM-dd");
+        QDate fFin = QDate::fromString(QString::fromStdString(nodo->fechaFin), "yyyy-MM-dd");
         QDate hoy = QDate::currentDate();
-        if (fechaFinPeli.isValid() && hoy.daysTo(fechaFinPeli) <= 7 && hoy.daysTo(fechaFinPeli) >= 0) {
-            for (int col = 0; col < 8; col++) {
-                tabla->item(fila, col)->setBackground(QBrush(QColor(255, 235, 59))); // Amarillo alerta
+
+        QString estado = "En cartelera";
+        if (fEstreno.isValid() && hoy < fEstreno) {
+            estado = "Próximo estreno";
+        } else if (fFin.isValid() && hoy.daysTo(fFin) <= 7 && hoy.daysTo(fFin) >= 0) {
+            estado = "Próximo a retirar";
+        }
+
+        tabla->setItem(fila, 8, new QTableWidgetItem(estado));
+
+        // Resaltar en amarillo las 9 columnas si está próximo a retirar
+        if (estado == "Próximo a retirar") {
+            for (int col = 0; col < 9; col++) {
+                tabla->item(fila, col)->setBackground(QBrush(QColor(255, 235, 59)));
                 tabla->item(fila, col)->setForeground(QBrush(Qt::black));
             }
         }
@@ -123,8 +139,20 @@ private:
         inordenTabla(nodo->derecha, tabla, fila);
     }
 
+    void destruirArbol(Pelicula* nodo) {
+        if (nodo != nullptr) {
+            destruirArbol(nodo->izquierda);
+            destruirArbol(nodo->derecha);
+            delete nodo;
+        }
+    }
+
 public:
     BSTCartelera() : raiz(nullptr) {}
+
+    ~BSTCartelera() {
+        destruirArbol(raiz);
+    }
 
     void insertar(std::string cod, std::string tit, std::string gen, int dur,
                   std::string clas, std::string idio, std::string fEstreno, std::string fFin) {
@@ -140,25 +168,36 @@ public:
         return buscarRecursivo(raiz, cod);
     }
 
-    void generarReporteGraphviz() {
-        std::ofstream file("../reportes/BST_Cartelera.dot");
-        file << "digraph BST_Cartelera {\n";
-        file << "  node [fontname=\"Arial\"];\n";
-        if (raiz == nullptr) {
-            file << "  empty [label=\"Cartelera Vacia\"];\n";
-        } else {
-            generarGraphvizRecursivo(raiz, file);
-        }
-        file << "}\n";
-        file.close();
-
-        system("dot -Tpng ../reportes/BST_Cartelera.dot -o ../reportes/BST_Cartelera.png");
-    }
-
     void cargarEnTabla(QTableWidget* tabla) {
         tabla->setRowCount(0);
         int fila = 0;
         inordenTabla(raiz, tabla, fila);
+    }
+
+    void generarReporteGraphviz() {
+        QString appPath = QCoreApplication::applicationDirPath();
+        QDir().mkpath(appPath + "/reportes");
+
+        QString dotFile = appPath + "/reportes/Cartelera_BST.dot";
+        QString pngFile = appPath + "/reportes/Cartelera_BST.png";
+
+        std::ofstream file(dotFile.toStdString());
+        file << "digraph BSTCartelera {\n";
+        file << "  node [fontname=\"Arial\"];\n";
+
+        if (raiz == nullptr) {
+            file << "  empty [label=\"Cartelera Vacía\", shape=box];\n";
+        } else {
+            generarGraphvizRecursivo(raiz, file);
+        }
+
+        file << "}\n";
+        file.close();
+
+        // Ejecución robusta con QProcess
+        QProcess process;
+        process.start("dot", QStringList() << "-Tpng" << dotFile << "-o" << pngFile);
+        process.waitForFinished(3000);
     }
 };
 

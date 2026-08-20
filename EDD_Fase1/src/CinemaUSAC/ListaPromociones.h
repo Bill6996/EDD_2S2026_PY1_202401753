@@ -7,6 +7,10 @@
 #include <cstdlib>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
+#include <QCoreApplication>
+#include <QDir>
+#include <QProcess>
+
 
 class ListaPromociones {
 private:
@@ -116,7 +120,13 @@ public:
     }
 
     void generarReporteGraphviz() {
-        std::ofstream file("../reportes/Lista_Promociones.dot");
+        QString appPath = QCoreApplication::applicationDirPath();
+        QDir().mkpath(appPath + "/reportes");
+
+        QString dotFile = appPath + "/reportes/Lista_Promociones.dot";
+        QString pngFile = appPath + "/reportes/Lista_Promociones.png";
+
+        std::ofstream file(dotFile.toStdString());
         file << "digraph ListaPromociones {\n";
         file << "  rankdir=TB;\n";
         file << "  node [shape=box, fontname=\"Arial\"];\n";
@@ -163,8 +173,11 @@ public:
         file << "}\n";
         file.close();
 
-        system("dot -Tpng ../reportes/Lista_Promociones.dot -o ../reportes/Lista_Promociones.png");
+        QProcess process;
+        process.start("dot", QStringList() << "-Tpng" << dotFile << "-o" << pngFile);
+        process.waitForFinished(3000);
     }
+
 };
 
 #endif // LISTAPROMOCIONES_H

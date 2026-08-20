@@ -4,6 +4,8 @@
 #include <QHeaderView>
 #include <QScrollArea>
 #include <QPixmap>
+#include <QCoreApplication>
+#include <QDir>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -90,7 +92,7 @@ QWidget* MainWindow::crearPanelAdmin() {
     tabsAdmin->addTab(pestanaGestionPromociones(), "Promociones");
     tabsAdmin->addTab(pestanaGestionSolicitudes(), "Solicitudes Especiales");
     tabsAdmin->addTab(pestanaGestionFunciones(), "Funciones y Asientos");
-    tabsAdmin->addTab(pestanaReportesVisuales(), "Reportes Visuales (Graphviz)"); // NAVEGADOR DE REPORTES
+    tabsAdmin->addTab(pestanaReportesVisuales(), "Reportes Visuales (Graphviz)");
 
     layout->addLayout(header);
     layout->addWidget(tabsAdmin);
@@ -101,7 +103,10 @@ QWidget* MainWindow::crearPanelAdmin() {
         solicitudes.generarReporteGraphviz();
         promociones.generarReporteGraphviz();
         if (matrizActual) matrizActual->generarReporteGraphviz();
-        QMessageBox::information(this, "Reportes", "Reportes Graphviz generados exitosamente en /reportes. Puedes verlos en la pestaña 'Reportes Visuales'.");
+
+        QString ruta = QCoreApplication::applicationDirPath() + "/reportes";
+        QMessageBox::information(this, "Reportes Generados",
+                                 "Reportes generados con éxito.\n\nRuta real donde se guardaron:\n" + ruta);
     });
 
     return vista;
@@ -265,8 +270,8 @@ QWidget* MainWindow::pestanaGestionSolicitudes() {
     navLayout->addWidget(btnSiguiente);
 
     QHBoxLayout* acciones = new QHBoxLayout();
-    QPushButton* btnAceptar = new QPushButton("Aprobar Solicitud");
-    QPushButton* btnRechazar = new QPushButton("Rechazar Solicitud");
+    QPushButton* btnAceptar = new QPushButton("Aprobar Solicitud Vista");
+    QPushButton* btnRechazar = new QPushButton("Rechazar Solicitud Vista");
     acciones->addWidget(btnAceptar);
     acciones->addWidget(btnRechazar);
 
@@ -308,21 +313,27 @@ QWidget* MainWindow::pestanaGestionSolicitudes() {
         actualizarVistaNavegacion();
     });
 
+    // AHORA TRABAJA SOBRE LA SOLICITUD EN PANTALLA (solicitudActualVista)
     connect(btnAceptar, &QPushButton::clicked, [this, actualizarVistaNavegacion]() {
-        Solicitud* s = solicitudes.getPrimera();
-        if (!s) return;
-        s->estado = "En proceso / Atendida";
-        QMessageBox::information(this, "Aprobada", QString("Solicitud #%1 aprobada.").arg(s->numero));
-        solicitudActualVista = nullptr;
+        if (!solicitudActualVista) {
+            QMessageBox::warning(this, "Atención", "No hay ninguna solicitud seleccionada.");
+            return;
+        }
+        solicitudActualVista->estado = "Atendida / Aprobada";
+        QMessageBox::information(this, "Aprobada", QString("Solicitud #%1 aprobada con éxito.").arg(solicitudActualVista->numero));
         refrescarSolicitudesAdmin();
+        actualizarVistaNavegacion();
     });
 
     connect(btnRechazar, &QPushButton::clicked, [this, actualizarVistaNavegacion]() {
-        if (solicitudes.rechazarPrimera()) {
-            QMessageBox::information(this, "Rechazada", "Solicitud rechazada y removida.");
-            solicitudActualVista = nullptr;
-            refrescarSolicitudesAdmin();
+        if (!solicitudActualVista) {
+            QMessageBox::warning(this, "Atención", "No hay ninguna solicitud seleccionada.");
+            return;
         }
+        solicitudActualVista->estado = "Rechazada";
+        QMessageBox::information(this, "Rechazada", QString("Solicitud #%1 marcada como rechazada.").arg(solicitudActualVista->numero));
+        refrescarSolicitudesAdmin();
+        actualizarVistaNavegacion();
     });
 
     return tab;
@@ -422,7 +433,6 @@ QWidget* MainWindow::pestanaGestionFunciones() {
     return tab;
 }
 
-// 3. Pestaña de Reportes Visuales Graphviz en Panel Admin
 QWidget* MainWindow::pestanaReportesVisuales() {
     QWidget* tab = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(tab);
@@ -448,20 +458,23 @@ QWidget* MainWindow::pestanaReportesVisuales() {
     layout->addLayout(topBtns);
     layout->addWidget(scrollArea);
 
-    auto cargarImagen = [lblViewer](const QString& ruta) {
-        QPixmap pix(ruta);
+    QString appPath = QCoreApplication::applicationDirPath();
+
+    auto cargarImagen = [lblViewer, appPath](const QString& nombreArchivo) {
+        QString rutaCompleta = appPath + "/reportes/" + nombreArchivo;
+        QPixmap pix(rutaCompleta);
         if (pix.isNull()) {
-            lblViewer->setText("No se encontró el archivo de imagen:\n" + ruta + "\n\nAsegúrate de hacer clic en 'Generar Reportes Graphviz' primero.");
+            lblViewer->setText("No se encontró el archivo de imagen:\n" + rutaCompleta + "\n\nAsegúrate de hacer clic en 'Generar Reportes Graphviz' primero.");
         } else {
             lblViewer->setPixmap(pix);
             lblViewer->adjustSize();
         }
     };
 
-    connect(btnVerBST, &QPushButton::clicked, [cargarImagen]() { cargarImagen("../reportes/Cartelera_BST.png"); });
-    connect(btnVerSolicitudes, &QPushButton::clicked, [cargarImagen]() { cargarImagen("../reportes/Lista_Solicitudes.png"); });
-    connect(btnVerPromos, &QPushButton::clicked, [cargarImagen]() { cargarImagen("../reportes/Lista_Promociones.png"); });
-    connect(btnVerMatriz, &QPushButton::clicked, [cargarImagen]() { cargarImagen("../reportes/Matriz_Asientos.png"); });
+    connect(btnVerBST, &QPushButton::clicked, [cargarImagen]() { cargarImagen("Cartelera_BST.png"); });
+    connect(btnVerSolicitudes, &QPushButton::clicked, [cargarImagen]() { cargarImagen("Lista_Solicitudes.png"); });
+    connect(btnVerPromos, &QPushButton::clicked, [cargarImagen]() { cargarImagen("Lista_Promociones.png"); });
+    connect(btnVerMatriz, &QPushButton::clicked, [cargarImagen]() { cargarImagen("Matriz_Asientos.png"); });
 
     return tab;
 }
@@ -586,14 +599,20 @@ QWidget* MainWindow::pestanaClienteCartelera() {
     return tab;
 }
 
-// 1. Pestaña de Reservas del Cliente con Selección/Información de Película Activa
 QWidget* MainWindow::pestanaClienteReservas() {
     QWidget* tab = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(tab);
 
+    QHBoxLayout* topHeaderLayout = new QHBoxLayout();
     QLabel* lblPeliculaActiva = new QLabel("FUNCIÓN ACTIVA: Ninguna cargada por el administrador.");
     lblPeliculaActiva->setFont(QFont("Arial", 11, QFont::Bold));
     lblPeliculaActiva->setStyleSheet("color: #ff9800; background-color: #333; padding: 10px; border-radius: 5px;");
+
+    QPushButton* btnRefrescarFuncion = new QPushButton("🔄 Refrescar Función Activa");
+    btnRefrescarFuncion->setStyleSheet("background-color: #1976d2; color: white; font-weight: bold; padding: 8px;");
+
+    topHeaderLayout->addWidget(lblPeliculaActiva, 1);
+    topHeaderLayout->addWidget(btnRefrescarFuncion);
 
     QTableWidget* mapaCliente = new QTableWidget();
     mapaCliente->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -632,6 +651,10 @@ QWidget* MainWindow::pestanaClienteReservas() {
         }
     };
 
+    connect(btnRefrescarFuncion, &QPushButton::clicked, [refrescarMapaCliente]() {
+        refrescarMapaCliente();
+    });
+
     QHBoxLayout* inputs = new QHBoxLayout();
     QLineEdit* txtFila = new QLineEdit(); txtFila->setPlaceholderText("Fila (ej. 1)");
     QLineEdit* txtCol = new QLineEdit(); txtCol->setPlaceholderText("Columna (ej. 1)");
@@ -647,7 +670,7 @@ QWidget* MainWindow::pestanaClienteReservas() {
     inputs->addWidget(btnCancelarReserva);
     inputs->addWidget(btnListarReservas);
 
-    layout->addWidget(lblPeliculaActiva);
+    layout->addLayout(topHeaderLayout);
     layout->addWidget(mapaCliente);
     layout->addLayout(inputs);
 
@@ -730,7 +753,6 @@ QWidget* MainWindow::pestanaClientePromociones() {
     return tab;
 }
 
-// 2. Pestaña de Solicitudes Especiales con Limpieza de Campos Automática (clear)
 QWidget* MainWindow::pestanaClienteSolicitudes() {
     QWidget* tab = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(tab);
@@ -769,7 +791,6 @@ QWidget* MainWindow::pestanaClienteSolicitudes() {
                              txtTipo->text().toStdString(), txtDesc->text().toStdString(), "2026-08-19");
         refrescarSolicitudesAdmin();
 
-        // Limpiar los campos de texto
         txtNombre->clear();
         txtTel->clear();
         txtTipo->clear();
