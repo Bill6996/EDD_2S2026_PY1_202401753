@@ -5,8 +5,9 @@
 struct Beneficio {
     std::string tipo;        // Descuento, Combo, 2x1
     std::string descripcion;
-    std::string valor;       // 5%, 10%, NA
+    std::string valor;       // 5%, 10%, y asi
 
+     //siguiente y anterior para la lista doblemente enlazada
     Beneficio* siguiente;
     Beneficio* anterior;
 

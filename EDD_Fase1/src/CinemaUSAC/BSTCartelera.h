@@ -12,7 +12,9 @@
 #include <QDate>
 #include <QProcess>
 
-
+//aqui implemente el manejo del arbol binario de busqueda
+//se implemento insercion, eliminacion y bisqueda
+//y reporte de graphyz
 class BSTCartelera {
 private:
     Pelicula* raiz;

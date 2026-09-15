@@ -1,0 +1,22 @@
+{
+  "clientes": [
+    {
+      "id": "U001",
+      "nombre": "Juanito Alimaña",
+      "correo": "juanito@gmail.com",
+      "telefono": "55551234",
+      "password": "juanito123",
+      "tipo": "cliente",
+      "reservas": []
+    },
+    {
+      "id": "U002",
+      "nombre": "María López",
+      "correo": "maria@gmail.com",
+      "telefono": "55559876",
+      "password": "maria123",
+      "tipo": "cliente",
+      "reservas": []
+    }
+  ]
+}

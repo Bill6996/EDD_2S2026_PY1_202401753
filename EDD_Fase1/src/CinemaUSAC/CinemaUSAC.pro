@@ -1,4 +1,5 @@
 QT += widgets
+QT += core gui widgets
 
 CONFIG += c++17
 
@@ -11,16 +12,23 @@ SOURCES += \
     mainwindow.cpp
 
 HEADERS += \
+    AVLFunciones.h \
+    ArbolBClientes.h \
     BSTCartelera.h \
     Beneficio.h \
     CargadorCSV.h \
+    CargadorJSON.h \
+    Cliente.h \
+    Funcion.h \
     ListaPromociones.h \
     ListaSolicitudes.h \
     MatrizDispersa.h \
     NodoMatriz.h \
     Pelicula.h \
     Promocion.h \
+    Reserva.h \
     Solicitud.h \
+    TablaHashReservas.h \
     mainwindow.h
 
 FORMS += \

@@ -7,7 +7,15 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QProcess>
+#include <sstream>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 
+//aqui se maneja el mapa de asientos ortogonal
+//almacena y gestiona las cabeceras de filas y columnas
+//permite reservar, cancelar y geenra reporte en graphyz
 class MatrizDispersa {
 private:
     NodoMatriz* raiz;
@@ -269,6 +277,119 @@ public:
             actual = actual->derecha;
         }
         return false;
+    }
+
+    // ---------- Vaciar toda la matriz (libera nodos de asientos) ----------
+    void vaciar() {
+        // Recorrer todas las filas y eliminar nodos de asientos
+        NodoMatriz* fila = raiz ? raiz->abajo : nullptr;
+        while (fila != nullptr) {
+            NodoMatriz* asiento = fila->derecha;
+            while (asiento != nullptr) {
+                NodoMatriz* temp = asiento;
+                asiento = asiento->derecha;
+                delete temp;
+            }
+            fila->derecha = nullptr;
+            fila = fila->abajo;
+        }
+        // También limpiar punteros verticales de las columnas
+        NodoMatriz* col = raiz ? raiz->derecha : nullptr;
+        while (col != nullptr) {
+            col->abajo = nullptr;
+            col = col->derecha;
+        }
+    }
+
+    // ---------- Contar asientos ocupados ----------
+    int contarOcupados() const {
+        int cont = 0;
+        NodoMatriz* fila = raiz ? raiz->abajo : nullptr;
+        while (fila != nullptr) {
+            NodoMatriz* asiento = fila->derecha;
+            while (asiento != nullptr) {
+                if (asiento->ocupado) cont++;
+                asiento = asiento->derecha;
+            }
+            fila = fila->abajo;
+        }
+        return cont;
+    }
+
+    // ---------- Guardar asientos ocupados a JSON ----------
+    // archivo = "F001_funcion.json"
+    bool guardarAJson(const std::string& codigoFuncion, const std::string& rutaArchivo) {
+        QJsonObject root;
+        root["codigo_funcion"] = QString::fromStdString(codigoFuncion);
+
+        QJsonArray asientos;
+        NodoMatriz* fila = raiz ? raiz->abajo : nullptr;
+        while (fila != nullptr) {
+            NodoMatriz* asiento = fila->derecha;
+            while (asiento != nullptr) {
+                if (asiento->ocupado) {
+                    QJsonObject obj;
+                    obj["fila"] = asiento->fila;
+                    obj["columna"] = asiento->columna;
+                    // En Fase 2 el campo "cliente" de NodoMatriz guarda el codigo_reserva
+                    obj["codigo_reserva"] = QString::fromStdString(asiento->cliente);
+                    asientos.append(obj);
+                }
+                asiento = asiento->derecha;
+            }
+            fila = fila->abajo;
+        }
+        root["asientos_ocupados"] = asientos;
+
+        QJsonDocument doc(root);
+        QFile file(QString::fromStdString(rutaArchivo));
+        if (!file.open(QIODevice::WriteOnly)) return false;
+        file.write(doc.toJson(QJsonDocument::Indented));
+        file.close();
+        return true;
+    }
+
+    // ---------- Cargar asientos ocupados desde JSON ----------
+    bool cargarDesdeJson(const std::string& rutaArchivo) {
+        QFile file(QString::fromStdString(rutaArchivo));
+        if (!file.open(QIODevice::ReadOnly)) return false;
+
+        QByteArray data = file.readAll();
+        file.close();
+
+        QJsonDocument doc = QJsonDocument::fromJson(data);
+        if (doc.isNull() || !doc.isObject()) return false;
+
+        QJsonObject root = doc.object();
+        QJsonArray asientos = root["asientos_ocupados"].toArray();
+
+        // Primero vaciar la matriz actual
+        vaciar();
+
+        for (const QJsonValue& val : asientos) {
+            QJsonObject obj = val.toObject();
+            int f = obj["fila"].toInt();
+            int c = obj["columna"].toInt();
+            std::string codReserva = obj["codigo_reserva"].toString().toStdString();
+
+            // Reutilizamos reservarAsiento: el "cliente" ahora es el codigo_reserva
+            reservarAsiento(f, c, codReserva);
+        }
+        return true;
+    }
+
+    // ---------- Crear archivo JSON vacío para una función nueva ----------
+    static bool crearArchivoVacio(const std::string& codigoFuncion, const std::string& rutaArchivo) {
+        QJsonObject root;
+        root["codigo_funcion"] = QString::fromStdString(codigoFuncion);
+        root["asientos_ocupados"] = QJsonArray();
+
+        QJsonDocument doc(root);
+        QFile file(QString::fromStdString(rutaArchivo));
+        if (!file.open(QIODevice::WriteOnly)) return false;
+        file.write(doc.toJson(QJsonDocument::Indented));
+        file.close();
+        return true;
     }
 };
 

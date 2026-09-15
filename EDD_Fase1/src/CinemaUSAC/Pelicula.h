@@ -12,6 +12,7 @@ struct Pelicula {
     std::string fechaEstreno;
     std::string fechaFin;
 
+//para el arbol bts y dos punteros izquierda y derecha
     Pelicula* izquierda;
     Pelicula* derecha;
 

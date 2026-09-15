@@ -4,6 +4,10 @@
 #include <fstream>
 #include <sstream>
 
+
+
+//aqui hacemos la lectura de masiva de dtaos
+//desde csv hacia el arbol bst cartelera se conecta
 class CargadorCSV {
 public:
     static void cargarPeliculas(const std::string& ruta, BSTCartelera& arbol) {

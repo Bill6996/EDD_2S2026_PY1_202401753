@@ -9,6 +9,7 @@ struct Promocion {
     std::string vigencia;
     std::string diasAplicables;
 
+    //puntero siguiente y la cabeza de la lista
     Beneficio* listaBeneficios; // Puntero a la lista doble de beneficios
     Promocion* siguiente;       // Puntero circular
 

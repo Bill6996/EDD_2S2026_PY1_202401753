@@ -9,6 +9,13 @@
 #include <QDir>
 #include <QProcess>
 
+
+//aqui manejo la lista circular doblemente enlazada +
+//aqui es donde agrego solicitudes, navegar en el anillo o actuakizar estados
+//y de ultimo con la info genera el graphiz o da la informacion
+
+
+
 class ListaSolicitudes {
 private:
     Solicitud* cabeza;

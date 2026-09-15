@@ -1,0 +1,52 @@
+{
+  "peliculas": [
+    {
+      "codigo": "P001",
+      "titulo": "Avatar 3",
+      "genero": "Ciencia Ficción",
+      "duracion": 180,
+      "clasificacion": "B15",
+      "idioma": "Subtitulada",
+      "fecha_estreno": "2026-01-15",
+      "fecha_fin": "2026-03-15",
+      "funciones": [
+        {
+          "codigo_funcion": "F001",
+          "horario": "17:00",
+          "sala": "Sala 2",
+          "filas": 5,
+          "columnas": 8,
+          "archivo_asientos": ""
+        },
+        {
+          "codigo_funcion": "F002",
+          "horario": "20:30",
+          "sala": "Sala 1",
+          "filas": 6,
+          "columnas": 10,
+          "archivo_asientos": ""
+        }
+      ]
+    },
+    {
+      "codigo": "P002",
+      "titulo": "Intensamente 2",
+      "genero": "Animación",
+      "duracion": 100,
+      "clasificacion": "AA",
+      "idioma": "Español",
+      "fecha_estreno": "2026-02-01",
+      "fecha_fin": "2026-04-01",
+      "funciones": [
+        {
+          "codigo_funcion": "F003",
+          "horario": "15:00",
+          "sala": "Sala 3",
+          "filas": 4,
+          "columnas": 6,
+          "archivo_asientos": ""
+        }
+      ]
+    }
+  ]
+}

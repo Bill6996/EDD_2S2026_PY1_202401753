@@ -2,6 +2,10 @@
 #define NODOMATRIZ_H
 #include <string>
 
+
+// esta es la matriz dispersa, ya que almacena las coordenada de la fila y columna
+//y el estado para ver si esta libre yo ocupado
+//4 punteros de enlace ortogonal
 struct NodoMatriz {
     int fila;
     int columna;

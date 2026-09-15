@@ -11,6 +11,8 @@
 #include <QDir>
 #include <QProcess>
 
+//se implemento la lista circular simple doble
+//aqui se inserta promociones, agrega beneficios o promocion especifica y carga datos y genera reporte
 
 class ListaPromociones {
 private:
