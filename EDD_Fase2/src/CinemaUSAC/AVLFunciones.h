@@ -12,6 +12,7 @@
 #include <QString>
 #include <QTableWidget>
 #include <QTableWidgetItem>
+#include <QDate>
 
 class AVLFunciones {
 private:
@@ -135,8 +136,8 @@ private:
                 nodo->filas = temp->filas;
                 nodo->columnas = temp->columnas;
                 nodo->archivo_asientos = temp->archivo_asientos;
-                nodo->derecha = eliminarRec(nodo->derecha, temp->codigo_funcion);
-            }
+                nodo->fecha = temp->fecha;
+                nodo->derecha = eliminarRec(nodo->derecha, temp->codigo_funcion);            }
         }
 
         if (nodo == nullptr) return nullptr;
@@ -226,13 +227,19 @@ private:
         if (nodo == nullptr) return;
 
         // Por ahora todas verdes (después se puede colorear según si ya pasó la fecha)
-        std::string color = "lightgreen";
+        QDate fFun = QDate::fromString(QString::fromStdString(nodo->fecha), "yyyy-MM-dd");
+            QDate hoy = QDate::currentDate();
+            std::string color = "lightgreen"; // programada
+            if (fFun.isValid() && fFun < hoy) {
+                color = "tomato"; // ya se realizó
+            }
 
         file << "  node_" << nodo->codigo_funcion
              << " [label=\"" << nodo->codigo_funcion
              << "\\nPelícula: " << nodo->codigo_pelicula
              << "\\n" << nodo->horario
              << "\\n" << nodo->sala
+             << "\\n" << nodo->fecha
              << "\", shape=circle, style=filled, fillcolor=" << color << "];\n";
 
         if (nodo->izquierda) {
@@ -262,11 +269,11 @@ public:
 
     // Insertar nueva función
     void insertar(std::string codFun, std::string codPel, std::string horario,
-                  std::string sala, int filas, int columnas, std::string archivo = "") {
-        Funcion* nuevo = new Funcion(codFun, codPel, horario, sala, filas, columnas, archivo);
+                  std::string sala, int filas, int columnas, std::string archivo = "",
+                  std::string fecha = "") {
+        Funcion* nuevo = new Funcion(codFun, codPel, horario, sala, filas, columnas, archivo, fecha);
         raiz = insertarRec(raiz, nuevo);
     }
-
     // Eliminar por código
     void eliminar(const std::string& codigo) {
         raiz = eliminarRec(raiz, codigo);
@@ -316,6 +323,7 @@ public:
     }
 
     bool estaVacio() const { return raiz == nullptr; }
+
 };
 
 #endif // AVLFUNCIONES_H

@@ -141,6 +141,58 @@ private:
         inordenTabla(nodo->derecha, tabla, fila);
     }
 
+    void preordenTabla(Pelicula* nodo, QTableWidget* tabla, int& fila) {
+        if (nodo == nullptr) return;
+
+        tabla->insertRow(fila);
+        tabla->setItem(fila, 0, new QTableWidgetItem(QString::fromStdString(nodo->codigo)));
+        tabla->setItem(fila, 1, new QTableWidgetItem(QString::fromStdString(nodo->titulo)));
+        tabla->setItem(fila, 2, new QTableWidgetItem(QString::fromStdString(nodo->genero)));
+        tabla->setItem(fila, 3, new QTableWidgetItem(QString::number(nodo->duracion) + " min"));
+        tabla->setItem(fila, 4, new QTableWidgetItem(QString::fromStdString(nodo->clasificacion)));
+        tabla->setItem(fila, 5, new QTableWidgetItem(QString::fromStdString(nodo->idioma)));
+        tabla->setItem(fila, 6, new QTableWidgetItem(QString::fromStdString(nodo->fechaEstreno)));
+        tabla->setItem(fila, 7, new QTableWidgetItem(QString::fromStdString(nodo->fechaFin)));
+
+        QDate fEstreno = QDate::fromString(QString::fromStdString(nodo->fechaEstreno), "yyyy-MM-dd");
+        QDate fFin = QDate::fromString(QString::fromStdString(nodo->fechaFin), "yyyy-MM-dd");
+        QDate hoy = QDate::currentDate();
+        QString estado = "En cartelera";
+        if (fEstreno.isValid() && hoy < fEstreno) estado = "Próximo estreno";
+        else if (fFin.isValid() && hoy.daysTo(fFin) <= 7 && hoy.daysTo(fFin) >= 0) estado = "Próximo a retirar";
+        tabla->setItem(fila, 8, new QTableWidgetItem(estado));
+        fila++;
+
+        preordenTabla(nodo->izquierda, tabla, fila);
+        preordenTabla(nodo->derecha, tabla, fila);
+    }
+
+    void postordenTabla(Pelicula* nodo, QTableWidget* tabla, int& fila) {
+        if (nodo == nullptr) return;
+        postordenTabla(nodo->izquierda, tabla, fila);
+        postordenTabla(nodo->derecha, tabla, fila);
+
+        tabla->insertRow(fila);
+        tabla->setItem(fila, 0, new QTableWidgetItem(QString::fromStdString(nodo->codigo)));
+        tabla->setItem(fila, 1, new QTableWidgetItem(QString::fromStdString(nodo->titulo)));
+        tabla->setItem(fila, 2, new QTableWidgetItem(QString::fromStdString(nodo->genero)));
+        tabla->setItem(fila, 3, new QTableWidgetItem(QString::number(nodo->duracion) + " min"));
+        tabla->setItem(fila, 4, new QTableWidgetItem(QString::fromStdString(nodo->clasificacion)));
+        tabla->setItem(fila, 5, new QTableWidgetItem(QString::fromStdString(nodo->idioma)));
+        tabla->setItem(fila, 6, new QTableWidgetItem(QString::fromStdString(nodo->fechaEstreno)));
+        tabla->setItem(fila, 7, new QTableWidgetItem(QString::fromStdString(nodo->fechaFin)));
+
+        QDate fEstreno = QDate::fromString(QString::fromStdString(nodo->fechaEstreno), "yyyy-MM-dd");
+        QDate fFin = QDate::fromString(QString::fromStdString(nodo->fechaFin), "yyyy-MM-dd");
+        QDate hoy = QDate::currentDate();
+        QString estado = "En cartelera";
+        if (fEstreno.isValid() && hoy < fEstreno) estado = "Próximo estreno";
+        else if (fFin.isValid() && hoy.daysTo(fFin) <= 7 && hoy.daysTo(fFin) >= 0) estado = "Próximo a retirar";
+        tabla->setItem(fila, 8, new QTableWidgetItem(estado));
+        fila++;
+    }
+
+
     void destruirArbol(Pelicula* nodo) {
         if (nodo != nullptr) {
             destruirArbol(nodo->izquierda);
@@ -170,10 +222,15 @@ public:
         return buscarRecursivo(raiz, cod);
     }
 
-    void cargarEnTabla(QTableWidget* tabla) {
+    void cargarEnTabla(QTableWidget* tabla, const std::string& recorrido = "inorden") {
         tabla->setRowCount(0);
         int fila = 0;
-        inordenTabla(raiz, tabla, fila);
+        if (recorrido == "preorden")
+            preordenTabla(raiz, tabla, fila);
+        else if (recorrido == "postorden")
+            postordenTabla(raiz, tabla, fila);
+        else
+            inordenTabla(raiz, tabla, fila);
     }
 
     void generarReporteGraphviz() {

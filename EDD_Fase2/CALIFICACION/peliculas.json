@@ -1,0 +1,335 @@
+{
+  "peliculas": [
+    {
+      "codigo": "P078",
+      "titulo": "El Ultimo Asalto",
+      "genero": "Acción",
+      "duracion": 135,
+      "clasificacion": "B15",
+      "idioma": "Subtitulada",
+      "fecha_estreno": "2026-09-02",
+      "fecha_fin": "2026-09-21",
+      "funciones": [
+        {
+          "codigo_funcion": "F078",
+          "horario": "19:00",
+          "sala": "Sala 1",
+          "filas": 7,
+          "columnas": 6,
+          "archivo_asientos": ""
+        },
+        {
+          "codigo_funcion": "F112",
+          "horario": "14:30",
+          "sala": "Sala 8",
+          "filas": 6,
+          "columnas": 7,
+          "archivo_asientos": ""
+        },
+        {
+          "codigo_funcion": "F005",
+          "horario": "21:00",
+          "sala": "Sala 15",
+          "filas": 8,
+          "columnas": 5,
+          "archivo_asientos": ""
+        }
+      ]
+    },
+    {
+      "codigo": "P112",
+      "titulo": "Risas de Domingo",
+      "genero": "Comedia",
+      "duracion": 105,
+      "clasificacion": "A",
+      "idioma": "Español",
+      "fecha_estreno": "2026-09-03",
+      "fecha_fin": "2026-09-22",
+      "funciones": [
+        {
+          "codigo_funcion": "F089",
+          "horario": "17:30",
+          "sala": "Sala 4",
+          "filas": 7,
+          "columnas": 7,
+          "archivo_asientos": ""
+        },
+        {
+          "codigo_funcion": "F064",
+          "horario": "20:00",
+          "sala": "Sala 12",
+          "filas": 8,
+          "columnas": 6,
+          "archivo_asientos": ""
+        }
+      ]
+    },
+    {
+      "codigo": "P005",
+      "titulo": "Sombras en la Noche",
+      "genero": "Terror",
+      "duracion": 118,
+      "clasificacion": "C",
+      "idioma": "Subtitulada",
+      "fecha_estreno": "2026-09-01",
+      "fecha_fin": "2026-09-23",
+      "funciones": [
+        {
+          "codigo_funcion": "F021",
+          "horario": "16:00",
+          "sala": "Sala 6",
+          "filas": 6,
+          "columnas": 5,
+          "archivo_asientos": ""
+        },
+        {
+          "codigo_funcion": "F128",
+          "horario": "22:00",
+          "sala": "Sala 19",
+          "filas": 8,
+          "columnas": 7,
+          "archivo_asientos": ""
+        },
+        {
+          "codigo_funcion": "F046",
+          "horario": "18:00",
+          "sala": "Sala 3",
+          "filas": 7,
+          "columnas": 6,
+          "archivo_asientos": ""
+        },
+        {
+          "codigo_funcion": "F011",
+          "horario": "20:30",
+          "sala": "Sala 10",
+          "filas": 6,
+          "columnas": 7,
+          "archivo_asientos": ""
+        },
+        {
+          "codigo_funcion": "F072",
+          "horario": "15:00",
+          "sala": "Sala 7",
+          "filas": 8,
+          "columnas": 5,
+          "archivo_asientos": ""
+        }
+      ]
+    },
+    {
+      "codigo": "P089",
+      "titulo": "Un Lugar Para Nosotros",
+      "genero": "Drama",
+      "duracion": 127,
+      "clasificacion": "B15",
+      "idioma": "Doblada",
+      "fecha_estreno": "2026-09-04",
+      "fecha_fin": "2026-09-24",
+      "funciones": [
+        {
+          "codigo_funcion": "F002",
+          "horario": "19:30",
+          "sala": "Sala 14",
+          "filas": 7,
+          "columnas": 6,
+          "archivo_asientos": ""
+        }
+      ]
+    },
+    {
+      "codigo": "P064",
+      "titulo": "Galaxia Perdida",
+      "genero": "Ciencia Ficción",
+      "duracion": 142,
+      "clasificacion": "B15",
+      "idioma": "Subtitulada",
+      "fecha_estreno": "2026-09-02",
+      "fecha_fin": "2026-09-25",
+      "funciones": [
+        {
+          "codigo_funcion": "F101",
+          "horario": "13:00",
+          "sala": "Sala 2",
+          "filas": 6,
+          "columnas": 5,
+          "archivo_asientos": ""
+        }
+      ]
+    },
+    {
+      "codigo": "P021",
+      "titulo": "La Aventura de Max",
+      "genero": "Animación",
+      "duracion": 96,
+      "clasificacion": "AA",
+      "idioma": "Español",
+      "fecha_estreno": "2026-09-05",
+      "fecha_fin": "2026-09-26",
+      "funciones": [
+        {
+          "codigo_funcion": "F009",
+          "horario": "21:30",
+          "sala": "Sala 18",
+          "filas": 8,
+          "columnas": 7,
+          "archivo_asientos": ""
+        }
+      ]
+    },
+    {
+      "codigo": "P128",
+      "titulo": "Código de Guerra",
+      "genero": "Acción",
+      "duracion": 129,
+      "clasificacion": "C",
+      "idioma": "Doblada",
+      "fecha_estreno": "2026-09-01",
+      "fecha_fin": "2026-09-21",
+      "funciones": []
+    },
+    {
+      "codigo": "P046",
+      "titulo": "Amor en la Ciudad",
+      "genero": "Drama",
+      "duracion": 121,
+      "clasificacion": "B15",
+      "idioma": "Español",
+      "fecha_estreno": "2026-09-03",
+      "fecha_fin": "2026-09-24",
+      "funciones": []
+    },
+    {
+      "codigo": "P011",
+      "titulo": "Va fallar, por la duracion",
+      "genero": "Terror",
+      "duracion": "110 minutos",
+      "clasificacion": "C",
+      "idioma": "Subtitulada",
+      "fecha_estreno": "2026-09-02",
+      "fecha_fin": "2026-09-26",
+      "funciones": []
+    },
+    {
+      "codigo": "P072",
+      "titulo": "Va fallar, por la fecha incorrecta",
+      "genero": "Comedia",
+      "duracion": 102,
+      "clasificacion": "A",
+      "idioma": "Doblada",
+      "fecha_estreno": "2026-09-04",
+      "fecha_fin": "2026-90-78",
+      "funciones": []
+    },
+    {
+      "codigo": "P002",
+      "titulo": "Mundos Paralelos",
+      "genero": "Ciencia Ficción",
+      "duracion": 150,
+      "clasificacion": "B15",
+      "idioma": "Subtitulada",
+      "fecha_estreno": "2026-09-01",
+      "fecha_fin": "2026-10-12",
+      "funciones": []
+    },
+    {
+      "codigo": "P101",
+      "titulo": "El Reino Perdido",
+      "genero": "Aventura",
+      "duracion": 138,
+      "clasificacion": "AA",
+      "idioma": "Español",
+      "fecha_estreno": "2026-09-03",
+      "fecha_fin": "2026-10-18",
+      "funciones": [
+        {
+          "codigo_funcion": "F056",
+          "horario": "17:00",
+          "sala": "Sala 5",
+          "filas": 7,
+          "columnas": 6,
+          "archivo_asientos": ""
+        },
+        {
+          "codigo_funcion": "F119",
+          "horario": "22:30",
+          "sala": "Sala 20",
+          "filas": 8,
+          "columnas": 5,
+          "archivo_asientos": ""
+        }
+      ]
+    },
+    {
+      "codigo": "P009",
+      "titulo": "Noche de Pesadilla",
+      "genero": "Terror",
+      "duracion": 124,
+      "clasificacion": "C",
+      "idioma": "Subtitulada",
+      "fecha_estreno": "2026-09-02",
+      "fecha_fin": "2026-10-25",
+      "funciones": []
+    },
+    {
+      "codigo": "Pelicula056",
+      "titulo": "Va fallar por el ID incorrecto",
+      "genero": "Animación",
+      "duracion": 98,
+      "clasificacion": "A",
+      "idioma": "Español",
+      "fecha_estreno": "2026-09-05",
+      "fecha_fin": "2026-11-01",
+      "funciones": []
+    },
+    {
+      "codigo": "P119",
+      "titulo": "Horizonte Final",
+      "genero": "Ciencia Ficción",
+      "duracion": 146,
+      "clasificacion": "B15",
+      "idioma": "Doblada",
+      "fecha_estreno": "2026-09-01",
+      "fecha_fin": "2026-11-08",
+      "funciones": []
+    },
+    {
+      "codigo": "P090",
+      "titulo": "Entre Dos Caminos",
+      "genero": "Drama",
+      "duracion": 133,
+      "clasificacion": "B15",
+      "idioma": "Subtitulada",
+      "fecha_estreno": "2026-09-04",
+      "fecha_fin": "2026-11-15",
+      "funciones": [
+        {
+          "codigo_funcion": "F090",
+          "horario": "18:30",
+          "sala": "Sala 9",
+          "filas": 6,
+          "columnas": 7,
+          "archivo_asientos": ""
+        },
+        {
+          "codigo_funcion": "F107",
+          "horario": "20:00",
+          "sala": "Sala 16",
+          "filas": 7,
+          "columnas": 6,
+          "archivo_asientos": ""
+        }
+      ]
+    },
+    {
+      "codigo": "P107",
+      "titulo": "Va fallar, por la fecha incorrecta",
+      "genero": "Acción",
+      "duracion": 155,
+      "clasificacion": "C",
+      "idioma": "Doblada",
+      "fecha_estreno": "2026-80-42",
+      "fecha_fin": "2026-11-22",
+      "funciones": []
+    }
+  ]
+}

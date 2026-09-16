@@ -1,0 +1,328 @@
+{
+    "clientes": [
+  {
+    "id": "U087",
+    "nombre": "Carlos root",
+    "correo": "carlos.root@gmail.com",
+    "telefono": "55551087",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": [
+
+      {
+        "codigo_reserva": "R001",
+        "codigo_funcion": "F078",
+        "fila": 2,
+        "columna": 5,
+        "fecha_reserva": "2026-09-16"
+      },
+      {
+        "codigo_reserva": "R002",
+        "codigo_funcion": "F089",
+        "fila": 4,
+        "columna": 3,
+        "fecha_reserva": "2026-09-16"
+      },
+      {
+        "codigo_reserva": "R003",
+        "codigo_funcion": "F089",
+        "fila": 2,
+        "columna": 2,
+        "fecha_reserva": "2026-09-16"
+      }
+
+    ]
+  },
+  {
+    "id": "U014",
+    "nombre": "Sofia Ramirez",
+    "correo": "sofia.ramirez@gmail.com",
+    "telefono": "55551014",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": []
+  },
+  {
+    "id": "U102",
+    "nombre": "Diego Morales",
+    "correo": "diego.morales@gmail.com",
+    "telefono": "55551102",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": []
+  },
+  {
+    "id": "U003",
+    "nombre": "Valeria Izquierdo",
+    "correo": "valeria.Izquierdo@gmail.com",
+    "telefono": "55551003",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": []
+  },
+  {
+    "id": "U129",
+    "nombre": "Fernando Derecho",
+    "correo": "fernando.derecho@gmail.com",
+    "telefono": "55551129",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": [
+
+
+      {
+        "codigo_reserva": "R004",
+        "codigo_funcion": "F046",
+        "fila": 1,
+        "columna": 1,
+        "fecha_reserva": "2026-09-16"
+      },
+      {
+        "codigo_reserva": "R005",
+        "codigo_funcion": "F046",
+        "fila": 3,
+        "columna": 5,
+        "fecha_reserva": "2026-09-16"
+      }
+
+
+    ]
+  },
+  {
+    "id": "U045",
+    "nombre": "Gabriela root",
+    "correo": "gabriela.root@gmail.com",
+    "telefono": "55551045",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": []
+  },
+  {
+    "id": "U066",
+    "nombre": "Andres Herrera",
+    "correo": "andres.herrera@gmail.com",
+    "telefono": "55551066",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": []
+  },
+  {
+    "id": "U021",
+    "nombre": "Cliente21",
+    "correo": "cliente21@gmail.com",
+    "telefono": "55551021",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": [
+
+      {
+        "codigo_reserva": "R006",
+        "codigo_funcion": "F046",
+        "fila": 5,
+        "columna": 2,
+        "fecha_reserva": "2026-09-16"
+      },
+      {
+        "codigo_reserva": "R007",
+        "codigo_funcion": "F046",
+        "fila": 6,
+        "columna": 5,
+        "fecha_reserva": "2026-09-16"
+      },
+      {
+        "codigo_reserva": "R008",
+        "codigo_funcion": "F046",
+        "fila": 2,
+        "columna": 6,
+        "fecha_reserva": "2026-09-16"
+      },
+      {
+        "codigo_reserva": "R013",
+        "codigo_funcion": "F046",
+        "fila": 6,
+        "columna": 3,
+        "fecha_reserva": "2026-09-16"
+      }
+
+    ]
+  },
+  {
+    "id": "U118",
+    "nombre": "Ricardo Gonzalez",
+    "correo": "ricardo.gonzalez@gmail.com",
+    "telefono": "55551118",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": []
+  },
+  {
+    "id": "U007",
+    "nombre": "Camila Rodriguez",
+    "correo": "camila.rodriguez@gmail.com",
+    "telefono": "55551007",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": []
+  },
+  {
+    "id": "U054",
+    "nombre": "Jorge Ramirez",
+    "correo": "jorge.ramirez@gmail.com",
+    "telefono": "55551054",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": []
+  },
+  {
+    "id": "U092",
+    "nombre": "Natalia Flores",
+    "correo": "natalia.flores@gmail.com",
+    "telefono": "55551092",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": []
+  },
+  {
+    "id": "U038",
+    "nombre": "Miguel angel Diaz",
+    "correo": "miguel.diaz@gmail.com",
+    "telefono": "55551038",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": []
+  },
+  {
+    "id": "U011",
+    "nombre": "Andrea Martinez",
+    "correo": "andrea.martinez@gmail.com",
+    "telefono": "55551011",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": [
+
+      {
+        "codigo_reserva": "R009",
+        "codigo_funcion": "F011",
+        "fila": 4,
+        "columna": 3,
+        "fecha_reserva": "2026-09-16"
+      }
+
+
+    ]
+  },
+  {
+    "id": "U073",
+    "nombre": "Luis Fernando Perez",
+    "correo": "luis.perez@gmail.com",
+    "telefono": "55551073",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": []
+  },
+  {
+    "id": "U124",
+    "nombre": "Mariana Sanchez",
+    "correo": "mariana.sanchez@gmail.com",
+    "telefono": "55551124",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": []
+  },
+  {
+    "id": "U030",
+    "nombre": "Alejandro Vargas",
+    "correo": "alejandro.vargas@gmail.com",
+    "telefono": "55551030",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": [
+
+      {
+        "codigo_reserva": "R010",
+        "codigo_funcion": "F072",
+        "fila": 6,
+        "columna": 4,
+        "fecha_reserva": "2026-09-16"
+      }
+
+
+    ]
+  },
+  {
+    "id": "U009",
+    "nombre": "Paola Hernandez",
+    "correo": "paola.hernandez@gmail.com",
+    "telefono": "55551009",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": []
+  },
+  {
+    "id": "U057",
+    "nombre": "Sebastian Sube",
+    "correo": "sebastian.sube@gmail.com",
+    "telefono": "55551057",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": [
+
+      {
+        "codigo_reserva": "R011",
+        "codigo_funcion": "F046",
+        "fila": 3,
+        "columna": 3,
+        "fecha_reserva": "2026-09-16"
+      },
+      {
+        "codigo_reserva": "R012",
+        "codigo_funcion": "F101",
+        "fila": 5,
+        "columna": 2,
+        "fecha_reserva": "2026-09-16"
+      }
+
+
+    ]
+  },
+  {
+    "id": "U080",
+    "nombre": "Laura Aguilar",
+    "correo": "laura.aguilar@gmail.com",
+    "telefono": "55551080",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": []
+  },
+  {
+    "id": "U025",
+    "nombre": "Jose Manuel Ortiz",
+    "correo": "jose.ortiz@gmail.com",
+    "telefono": "55551025",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": []
+  },
+  {
+    "id": "U106",
+    "nombre": "Fernanda Reyes",
+    "correo": "fernanda.reyes@gmail.com",
+    "telefono": "55551106",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": []
+  },
+  {
+    "id": "U107",
+    "nombre": "Pablo Castillo",
+    "correo": "pablo.castillo@gmail.com",
+    "telefono": "55551107",
+    "password": "12345",
+    "tipo": "cliente",
+    "reservas": []
+  }
+]
+
+
+
+}

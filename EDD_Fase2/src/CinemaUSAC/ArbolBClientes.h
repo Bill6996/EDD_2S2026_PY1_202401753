@@ -182,6 +182,43 @@ private:
         delete nodo;
     }
 
+    // Quitar una clave de un nodo hoja (desplaza las demás)
+    void quitarDeHoja(NodoB* nodo, int indice) {
+        delete nodo->claves[indice];
+        for (int i = indice; i < nodo->numClaves - 1; i++) {
+            nodo->claves[i] = nodo->claves[i + 1];
+        }
+        nodo->claves[nodo->numClaves - 1] = nullptr;
+        nodo->numClaves--;
+    }
+
+    // Busca el nodo hoja que contiene el id y el índice de la clave
+    bool eliminarDeHoja(NodoB* nodo, const std::string& id) {
+        if (nodo == nullptr) return false;
+
+        int i = 0;
+        while (i < nodo->numClaves && id > nodo->claves[i]->id)
+            i++;
+
+        if (nodo->esHoja) {
+            if (i < nodo->numClaves && nodo->claves[i]->id == id) {
+                // Liberar lista de reservas del cliente
+                NodoCodigoReserva* n = nodo->claves[i]->listaReservas;
+                while (n != nullptr) {
+                    NodoCodigoReserva* temp = n;
+                    n = n->siguiente;
+                    delete temp;
+                }
+                quitarDeHoja(nodo, i);
+                return true;
+            }
+            return false;
+        }
+
+        // No es hoja: bajar al hijo correcto
+        return eliminarDeHoja(nodo->hijos[i], id);
+    }
+
 public:
     ArbolBClientes() : raiz(nullptr) {}
 
@@ -263,6 +300,26 @@ public:
     }
 
     bool estaVacio() const { return raiz == nullptr; }
+
+    // Eliminación simplificada: solo funciona bien si el cliente está en una hoja
+    // y el nodo no queda por debajo del mínimo. Suficiente para demostración.
+    bool eliminar(const std::string& id) {
+        if (raiz == nullptr) return false;
+        if (buscar(id) == nullptr) return false;
+
+        bool ok = eliminarDeHoja(raiz, id);
+
+        // Si la raíz quedó vacía y tiene un hijo, bajar la raíz
+        if (ok && raiz->numClaves == 0 && !raiz->esHoja) {
+            NodoB* vieja = raiz;
+            raiz = raiz->hijos[0];
+            delete vieja;
+        } else if (ok && raiz->numClaves == 0 && raiz->esHoja) {
+            delete raiz;
+            raiz = nullptr;
+        }
+        return ok;
+    }
 };
 
 #endif // ARBOLBCLIENTES_H

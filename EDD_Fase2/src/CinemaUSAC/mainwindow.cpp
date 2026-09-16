@@ -13,6 +13,7 @@
 #include <QFileDialog>
 #include <QTreeWidget>
 #include <QFrame>
+#include <QFile>
 
 // ============================================================
 // CONSTRUCTOR / DESTRUCTOR
@@ -221,6 +222,8 @@ QWidget* MainWindow::pestanaGestionClientes() {
     QPushButton* btnRefrescar = new QPushButton("Actualizar Lista");
     QPushButton* btnAgregar   = new QPushButton("Agregar Cliente");
     QPushButton* btnEliminar  = new QPushButton("Eliminar Cliente");
+    QPushButton* btnVerReservas = new QPushButton("Ver reservas del cliente");
+    btns->addWidget(btnVerReservas);
     btns->addWidget(btnRefrescar);
     btns->addWidget(btnAgregar);
     btns->addWidget(btnEliminar);
@@ -270,22 +273,54 @@ QWidget* MainWindow::pestanaGestionClientes() {
             return;
         }
 
-        // Eliminar en cascada sus reservas de la Tabla Hash
+        // 1. Eliminar en cascada sus reservas de la Tabla Hash
         NodoCodigoReserva* nodo = cli->listaReservas;
         while (nodo != nullptr) {
             reservas.eliminar(nodo->codigo_reserva);
-            NodoCodigoReserva* temp = nodo;
             nodo = nodo->siguiente;
-            // no borramos el nodo aquí porque el destructor del cliente lo hará
         }
 
-        // Nota: la eliminación completa del nodo en el Árbol B (con fusión)
-        // es compleja. Por ahora avisamos que se eliminaron las reservas.
-        // Si el auxiliar exige eliminación del Árbol B, se implementa después.
-        QMessageBox::information(this, "Info",
-                                 "Se eliminaron las reservas del cliente de la Tabla Hash.\n"
-                                 "La eliminación completa del nodo en el Árbol B se puede ampliar si se requiere.");
+        // 2. Eliminar del Árbol B
+        clientes.eliminar(id.toStdString());
+
         refrescarTablaClientes();
+        QMessageBox::information(this, "OK",
+                                 "Reservas eliminadas de la Tabla Hash.\nCliente procesado en el Árbol B.");
+    });
+
+    connect(btnVerReservas, &QPushButton::clicked, [this]() {
+        bool ok;
+        QString id = QInputDialog::getText(this, "Reservas", "ID del cliente:", QLineEdit::Normal, "", &ok);
+        if (!ok || id.isEmpty()) return;
+
+        Cliente* cli = clientes.buscar(id.toStdString());
+        if (!cli) {
+            QMessageBox::warning(this, "Error", "Cliente no encontrado.");
+            return;
+        }
+
+        QString lista;
+        NodoCodigoReserva* nodo = cli->listaReservas;
+        int cont = 0;
+        while (nodo != nullptr) {
+            Reserva* res = reservas.buscar(nodo->codigo_reserva);
+            if (res) {
+                cont++;
+                lista += QString("%1) %2 | Función: %3 | F%4-C%5 | Fecha: %6\n")
+                             .arg(cont)
+                             .arg(QString::fromStdString(res->codigo_reserva))
+                             .arg(QString::fromStdString(res->codigo_funcion))
+                             .arg(res->fila)
+                             .arg(res->columna)
+                             .arg(QString::fromStdString(res->fecha_reserva));
+            }
+            nodo = nodo->siguiente;
+        }
+
+        if (cont == 0)
+            QMessageBox::information(this, "Reservas", "El cliente no tiene reservas.");
+        else
+            QMessageBox::information(this, "Reservas de " + QString::fromStdString(cli->nombre), lista);
     });
 
     return tab;
@@ -421,6 +456,9 @@ QWidget* MainWindow::pestanaGestionPeliculas() {
     cmbRecorrido->addItems({"inorden", "preorden", "postorden"});
     QPushButton* btnRecorrer = new QPushButton("Listar por recorrido");
 
+    QPushButton* btnEditar = new QPushButton("Editar Película");
+    btnLayout->addWidget(btnEditar);
+
     btnLayout->addWidget(btnAgregar);
     btnLayout->addWidget(btnEliminar);
     btnLayout->addWidget(btnCargaCSV);
@@ -469,12 +507,52 @@ QWidget* MainWindow::pestanaGestionPeliculas() {
 
     connect(btnRecorrer, &QPushButton::clicked, [this, cmbRecorrido]() {
         QString rec = cmbRecorrido->currentText();
-        // Por ahora el BST solo tiene inorden en cargarEnTabla.
-        // Si quieres pre/post, hay que agregar esos métodos al BST.
-        // Mientras tanto usamos el inorden:
+        cartelera.cargarEnTabla(tablaCarteleraAdmin, rec.toStdString());
+    });
+
+    connect(btnEditar, &QPushButton::clicked, [this]() {
+        bool ok;
+        QString cod = QInputDialog::getText(this, "Editar", "Código de la película:", QLineEdit::Normal, "", &ok);
+        if (!ok || cod.isEmpty()) return;
+
+        Pelicula* p = cartelera.buscar(cod.toStdString());
+        if (!p) {
+            QMessageBox::warning(this, "Error", "Película no encontrada.");
+            return;
+        }
+
+        QString tit = QInputDialog::getText(this, "Editar", "Título:", QLineEdit::Normal,
+                                            QString::fromStdString(p->titulo), &ok);
+        if (!ok) return;
+        QString gen = QInputDialog::getText(this, "Editar", "Género:", QLineEdit::Normal,
+                                            QString::fromStdString(p->genero), &ok);
+        if (!ok) return;
+        int dur = QInputDialog::getInt(this, "Editar", "Duración:", p->duracion, 1, 500, 1, &ok);
+        if (!ok) return;
+        QString clas = QInputDialog::getText(this, "Editar", "Clasificación:", QLineEdit::Normal,
+                                             QString::fromStdString(p->clasificacion), &ok);
+        if (!ok) return;
+        QString idio = QInputDialog::getText(this, "Editar", "Idioma:", QLineEdit::Normal,
+                                             QString::fromStdString(p->idioma), &ok);
+        if (!ok) return;
+        QString fEst = QInputDialog::getText(this, "Editar", "Fecha estreno:", QLineEdit::Normal,
+                                             QString::fromStdString(p->fechaEstreno), &ok);
+        if (!ok) return;
+        QString fFin = QInputDialog::getText(this, "Editar", "Fecha fin:", QLineEdit::Normal,
+                                             QString::fromStdString(p->fechaFin), &ok);
+        if (!ok) return;
+
+        // Actualizar los campos del nodo (el código no se cambia)
+        p->titulo = tit.toStdString();
+        p->genero = gen.toStdString();
+        p->duracion = dur;
+        p->clasificacion = clas.toStdString();
+        p->idioma = idio.toStdString();
+        p->fechaEstreno = fEst.toStdString();
+        p->fechaFin = fFin.toStdString();
+
         cartelera.cargarEnTabla(tablaCarteleraAdmin);
-        QMessageBox::information(this, "Recorrido",
-                                 "Listado con recorrido: " + rec + "\n(Actualmente se muestra inorden. Se puede ampliar el BST).");
+        QMessageBox::information(this, "OK", "Película actualizada.");
     });
 
     return tab;
@@ -633,6 +711,10 @@ QWidget* MainWindow::pestanaGestionFunciones() {
     QPushButton* btnCrearFun = new QPushButton("Crear Función (AVL)");
     QPushButton* btnCargarFun = new QPushButton("Cargar Función en Matriz");
     QPushButton* btnRefrescarFun = new QPushButton("Actualizar Lista");
+    QPushButton* btnEliminarFun = new QPushButton("Eliminar Función");
+    QPushButton* btnEditarFun = new QPushButton("Editar Función");
+    btnsFun->addWidget(btnEditarFun);
+    btnsFun->addWidget(btnEliminarFun);
     btnsFun->addWidget(btnCrearFun);
     btnsFun->addWidget(btnCargarFun);
     btnsFun->addWidget(btnRefrescarFun);
@@ -661,13 +743,23 @@ QWidget* MainWindow::pestanaGestionFunciones() {
         QString codPel = QInputDialog::getText(this, "Función", "Código película:", QLineEdit::Normal, "", &ok);
         if (!ok || codPel.isEmpty()) return;
         QString horario = QInputDialog::getText(this, "Función", "Horario:", QLineEdit::Normal, "17:00", &ok);
+        if (!ok) return;
         QString sala = QInputDialog::getText(this, "Función", "Sala:", QLineEdit::Normal, "Sala 1", &ok);
+        if (!ok) return;
         int filas = QInputDialog::getInt(this, "Función", "Filas:", 5, 1, 50, 1, &ok);
+        if (!ok) return;
         int cols = QInputDialog::getInt(this, "Función", "Columnas:", 8, 1, 50, 1, &ok);
+        if (!ok) return;
+
+        // NUEVO: pedir fecha de la función
+        QString fecha = QInputDialog::getText(this, "Función", "Fecha (yyyy-MM-dd):",
+                                              QLineEdit::Normal,
+                                              QDate::currentDate().toString("yyyy-MM-dd"), &ok);
+        if (!ok) return;
 
         std::string archivo = codFun.toStdString() + "_funcion.json";
         funciones.insertar(codFun.toStdString(), codPel.toStdString(), horario.toStdString(),
-                           sala.toStdString(), filas, cols, archivo);
+                           sala.toStdString(), filas, cols, archivo, fecha.toStdString());
 
         QString ruta = QCoreApplication::applicationDirPath() + "/asientos/" + QString::fromStdString(archivo);
         MatrizDispersa::crearArchivoVacio(codFun.toStdString(), ruta.toStdString());
@@ -682,6 +774,71 @@ QWidget* MainWindow::pestanaGestionFunciones() {
         if (!ok || cod.isEmpty()) return;
         cargarFuncionEnMatriz(cod.toStdString());
         refrescarMapaAsientosAdmin();
+    });
+
+    connect(btnEliminarFun, &QPushButton::clicked, [this]() {
+        bool ok;
+        QString cod = QInputDialog::getText(this, "Eliminar Función",
+                                            "Código de la función a eliminar:", QLineEdit::Normal, "", &ok);
+        if (!ok || cod.isEmpty()) return;
+
+        Funcion* fun = funciones.buscar(cod.toStdString());
+        if (!fun) {
+            QMessageBox::warning(this, "Error", "Función no encontrada.");
+            return;
+        }
+
+        // Si es la función activa, liberar la matriz
+        if (funcionActivaCodigo == cod.toStdString()) {
+            if (matrizActual) {
+                delete matrizActual;
+                matrizActual = nullptr;
+            }
+            funcionActivaCodigo = "";
+            if (lblFuncionActiva) lblFuncionActiva->setText("Función activa: Ninguna");
+            if (mapaVisualAdmin) {
+                mapaVisualAdmin->setRowCount(0);
+                mapaVisualAdmin->setColumnCount(0);
+            }
+        }
+
+        // Borrar el archivo JSON de asientos
+        QString ruta = QCoreApplication::applicationDirPath()
+                       + "/asientos/" + QString::fromStdString(fun->archivo_asientos);
+        QFile::remove(ruta);
+
+        // Eliminar del AVL
+        funciones.eliminar(cod.toStdString());
+        refrescarTablaFunciones();
+
+        QMessageBox::information(this, "Eliminada",
+                                 "Función eliminada del AVL y archivo JSON borrado.");
+    });
+
+    connect(btnEditarFun, &QPushButton::clicked, [this]() {
+        bool ok;
+        QString cod = QInputDialog::getText(this, "Editar Función", "Código de función:", QLineEdit::Normal, "", &ok);
+        if (!ok || cod.isEmpty()) return;
+
+        Funcion* fun = funciones.buscar(cod.toStdString());
+        if (!fun) {
+            QMessageBox::warning(this, "Error", "Función no encontrada.");
+            return;
+        }
+
+        QString horario = QInputDialog::getText(this, "Editar", "Horario:", QLineEdit::Normal,
+                                                QString::fromStdString(fun->horario), &ok);
+        if (!ok) return;
+        QString sala = QInputDialog::getText(this, "Editar", "Sala:", QLineEdit::Normal,
+                                             QString::fromStdString(fun->sala), &ok);
+        if (!ok) return;
+
+        // Solo editamos horario y sala (filas/columnas no se cambian para no romper asientos)
+        fun->horario = horario.toStdString();
+        fun->sala = sala.toStdString();
+
+        refrescarTablaFunciones();
+        QMessageBox::information(this, "OK", "Función actualizada.");
     });
 
     return tab;

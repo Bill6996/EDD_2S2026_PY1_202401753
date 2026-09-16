@@ -106,14 +106,21 @@ public:
                     }
 
                     // archivo_asientos se genera al crear la función
+                    // archivo_asientos se genera al crear la función
                     std::string archivo = codFun.toStdString() + "_funcion.json";
+
+                    // Fecha de la función (si no viene en el JSON, usar una futura)
+                    QString fechaFun = fObj["fecha"].toString().trimmed();
+                    if (fechaFun.isEmpty())
+                        fechaFun = "2026-12-31";
 
                     funciones.insertar(codFun.toStdString(),
                                        codigo.toStdString(),
                                        horario.toStdString(),
                                        sala.toStdString(),
                                        filas, columnas,
-                                       archivo);
+                                       archivo,
+                                       fechaFun.toStdString());
 
                     // Crear el archivo JSON vacío de asientos
                     QString rutaAsientos = QCoreApplication::applicationDirPath()
