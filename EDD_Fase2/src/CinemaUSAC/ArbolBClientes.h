@@ -1,6 +1,5 @@
 #ifndef ARBOLBCLIENTES_H
 #define ARBOLBCLIENTES_H
-
 #include "Cliente.h"
 #include <iostream>
 #include <fstream>
@@ -35,14 +34,11 @@ private:
     // ---------- Búsqueda ----------
     Cliente* buscarRec(NodoB* nodo, const std::string& id) const {
         if (nodo == nullptr) return nullptr;
-
         int i = 0;
         while (i < nodo->numClaves && id > nodo->claves[i]->id)
             i++;
-
         if (i < nodo->numClaves && id == nodo->claves[i]->id)
             return nodo->claves[i];
-
         if (nodo->esHoja) return nullptr;
         return buscarRec(nodo->hijos[i], id);
     }
@@ -50,7 +46,6 @@ private:
     // Buscar por correo (recorrido completo)
     Cliente* buscarPorCorreoRec(NodoB* nodo, const std::string& correo) const {
         if (nodo == nullptr) return nullptr;
-
         for (int i = 0; i < nodo->numClaves; i++) {
             if (nodo->claves[i]->correo == correo)
                 return nodo->claves[i];
@@ -69,27 +64,20 @@ private:
         NodoB* lleno = padre->hijos[indice];
         NodoB* nuevo = new NodoB(lleno->esHoja);
 
-        // El nodo de orden 4 tiene 3 claves. Al dividir:
-        // - La clave del medio (índice 1) sube al padre
-        // - La clave derecha (índice 2) se va al nuevo nodo
         nuevo->numClaves = 1;
         nuevo->claves[0] = lleno->claves[2];
-
         if (!lleno->esHoja) {
             nuevo->hijos[0] = lleno->hijos[2];
             nuevo->hijos[1] = lleno->hijos[3];
             lleno->hijos[2] = lleno->hijos[3] = nullptr;
         }
+        lleno->numClaves = 1;
 
-        lleno->numClaves = 1; // Solo queda la clave 0
-
-        // Hacer espacio en el padre para el nuevo hijo
         for (int j = padre->numClaves; j > indice; j--) {
             padre->hijos[j + 1] = padre->hijos[j];
         }
         padre->hijos[indice + 1] = nuevo;
 
-        // Subir la clave del medio al padre
         for (int j = padre->numClaves - 1; j >= indice; j--) {
             padre->claves[j + 1] = padre->claves[j];
         }
@@ -101,9 +89,7 @@ private:
     // ---------- Inserción en nodo no lleno ----------
     void insertarNoLleno(NodoB* nodo, Cliente* cliente) {
         int i = nodo->numClaves - 1;
-
         if (nodo->esHoja) {
-            // Insertar ordenado en la hoja
             while (i >= 0 && cliente->id < nodo->claves[i]->id) {
                 nodo->claves[i + 1] = nodo->claves[i];
                 i--;
@@ -111,12 +97,9 @@ private:
             nodo->claves[i + 1] = cliente;
             nodo->numClaves++;
         } else {
-            // Buscar el hijo correcto
             while (i >= 0 && cliente->id < nodo->claves[i]->id)
                 i--;
             i++;
-
-            // Si el hijo está lleno, dividirlo primero
             if (nodo->hijos[i]->numClaves == MAX_CLAVES) {
                 dividirHijo(nodo, i);
                 if (cliente->id > nodo->claves[i]->id)
@@ -126,13 +109,20 @@ private:
         }
     }
 
-    // ---------- Recorrido inorden para la tabla ----------
+    // ---------- Recorrido inorden para la tabla (con N° Reservas) ----------
     void inordenTabla(NodoB* nodo, QTableWidget* tabla, int& fila) {
         if (nodo == nullptr) return;
-
         for (int i = 0; i < nodo->numClaves; i++) {
             if (!nodo->esHoja)
                 inordenTabla(nodo->hijos[i], tabla, fila);
+
+            // Contar reservas del cliente
+            int cantReservas = 0;
+            NodoCodigoReserva* n = nodo->claves[i]->listaReservas;
+            while (n != nullptr) {
+                cantReservas++;
+                n = n->siguiente;
+            }
 
             tabla->insertRow(fila);
             tabla->setItem(fila, 0, new QTableWidgetItem(QString::fromStdString(nodo->claves[i]->id)));
@@ -140,6 +130,8 @@ private:
             tabla->setItem(fila, 2, new QTableWidgetItem(QString::fromStdString(nodo->claves[i]->correo)));
             tabla->setItem(fila, 3, new QTableWidgetItem(QString::fromStdString(nodo->claves[i]->telefono)));
             tabla->setItem(fila, 4, new QTableWidgetItem(QString::fromStdString(nodo->claves[i]->tipo)));
+            tabla->setItem(fila, 5, new QTableWidgetItem(QString::number(cantReservas)));
+            tabla->setItem(fila, 6, new QTableWidgetItem(QString::fromStdString(nodo->claves[i]->password)));
             fila++;
         }
         if (!nodo->esHoja)
@@ -147,12 +139,25 @@ private:
     }
 
     // ---------- Graphviz ----------
-    void generarGraphvizRec(NodoB* nodo, std::ofstream& file, int& contador, std::string& idNodo) {
+    void generarGraphvizRec(NodoB* nodo, std::ofstream& file, int& contador,
+                            std::string& idNodo, bool esRaiz) {
         if (nodo == nullptr) return;
 
         idNodo = "nodo" + std::to_string(contador++);
-        file << "  " << idNodo << " [shape=record, label=\"";
 
+        // Colores: raíz / internos / hojas
+        std::string color;
+        if (esRaiz) {
+            color = "orange";        // RAÍZ
+        } else if (nodo->esHoja) {
+            color = "lightgreen";    // HOJAS
+        } else {
+            color = "lightblue";     // NODOS INTERNOS
+        }
+
+        file << "  " << idNodo
+             << " [shape=record, style=filled, fillcolor=" << color
+             << ", label=\"";
         for (int i = 0; i < nodo->numClaves; i++) {
             if (i > 0) file << " | ";
             file << "<f" << i << "> " << nodo->claves[i]->id
@@ -163,7 +168,7 @@ private:
         if (!nodo->esHoja) {
             for (int i = 0; i <= nodo->numClaves; i++) {
                 std::string idHijo;
-                generarGraphvizRec(nodo->hijos[i], file, contador, idHijo);
+                generarGraphvizRec(nodo->hijos[i], file, contador, idHijo, false);
                 file << "  " << idNodo << ":f" << std::min(i, nodo->numClaves - 1)
                      << " -> " << idHijo << ";\n";
             }
@@ -182,7 +187,7 @@ private:
         delete nodo;
     }
 
-    // Quitar una clave de un nodo hoja (desplaza las demás)
+    // Quitar una clave de un nodo hoja
     void quitarDeHoja(NodoB* nodo, int indice) {
         delete nodo->claves[indice];
         for (int i = indice; i < nodo->numClaves - 1; i++) {
@@ -192,17 +197,14 @@ private:
         nodo->numClaves--;
     }
 
-    // Busca el nodo hoja que contiene el id y el índice de la clave
+    // Eliminar desde hoja
     bool eliminarDeHoja(NodoB* nodo, const std::string& id) {
         if (nodo == nullptr) return false;
-
         int i = 0;
         while (i < nodo->numClaves && id > nodo->claves[i]->id)
             i++;
-
         if (nodo->esHoja) {
             if (i < nodo->numClaves && nodo->claves[i]->id == id) {
-                // Liberar lista de reservas del cliente
                 NodoCodigoReserva* n = nodo->claves[i]->listaReservas;
                 while (n != nullptr) {
                     NodoCodigoReserva* temp = n;
@@ -214,86 +216,68 @@ private:
             }
             return false;
         }
-
-        // No es hoja: bajar al hijo correcto
         return eliminarDeHoja(nodo->hijos[i], id);
     }
 
 public:
     ArbolBClientes() : raiz(nullptr) {}
-
     ~ArbolBClientes() {
         destruir(raiz);
     }
 
-    // Insertar cliente
     bool insertar(Cliente* cliente) {
         if (cliente == nullptr) return false;
-
-        // Verificar que no exista el ID ni el correo
         if (buscar(cliente->id) != nullptr) return false;
         if (buscarPorCorreo(cliente->correo) != nullptr) return false;
-
         if (raiz == nullptr) {
             raiz = new NodoB(true);
             raiz->claves[0] = cliente;
             raiz->numClaves = 1;
             return true;
         }
-
-        // Si la raíz está llena, crear nueva raíz
         if (raiz->numClaves == MAX_CLAVES) {
             NodoB* nuevaRaiz = new NodoB(false);
             nuevaRaiz->hijos[0] = raiz;
             dividirHijo(nuevaRaiz, 0);
             raiz = nuevaRaiz;
         }
-
         insertarNoLleno(raiz, cliente);
         return true;
     }
 
-    // Buscar por ID
     Cliente* buscar(const std::string& id) const {
         return buscarRec(raiz, id);
     }
 
-    // Buscar por correo (para login y validación de registro)
     Cliente* buscarPorCorreo(const std::string& correo) const {
         return buscarPorCorreoRec(raiz, correo);
     }
 
-    // Cargar todos los clientes ordenados por ID en una tabla
     void cargarEnTabla(QTableWidget* tabla) {
         tabla->setRowCount(0);
         int fila = 0;
         inordenTabla(raiz, tabla, fila);
     }
 
-    // Generar reporte Graphviz
     void generarReporteGraphviz() {
         QString appPath = QCoreApplication::applicationDirPath();
         QDir().mkpath(appPath + "/reportes");
-
         QString dotFile = appPath + "/reportes/ArbolB_Clientes.dot";
         QString pngFile = appPath + "/reportes/ArbolB_Clientes.png";
-
         std::ofstream file(dotFile.toStdString());
         file << "digraph ArbolB {\n";
         file << "  node [fontname=\"Arial\"];\n";
         file << "  rankdir=TB;\n";
-
         if (raiz == nullptr) {
             file << "  empty [label=\"Sin clientes\", shape=box];\n";
         } else {
             int contador = 0;
-            std::string idRaiz;
-            generarGraphvizRec(raiz, file, contador, idRaiz);
-        }
+                std::string idRaiz;
+                generarGraphvizRec(raiz, file, contador, idRaiz, true);  // true = es la raíz
 
+        }
         file << "}\n";
         file.close();
-
         QProcess process;
         process.start("dot", QStringList() << "-Tpng" << dotFile << "-o" << pngFile);
         process.waitForFinished(5000);
@@ -301,15 +285,10 @@ public:
 
     bool estaVacio() const { return raiz == nullptr; }
 
-    // Eliminación simplificada: solo funciona bien si el cliente está en una hoja
-    // y el nodo no queda por debajo del mínimo. Suficiente para demostración.
     bool eliminar(const std::string& id) {
         if (raiz == nullptr) return false;
         if (buscar(id) == nullptr) return false;
-
         bool ok = eliminarDeHoja(raiz, id);
-
-        // Si la raíz quedó vacía y tiene un hijo, bajar la raíz
         if (ok && raiz->numClaves == 0 && !raiz->esHoja) {
             NodoB* vieja = raiz;
             raiz = raiz->hijos[0];

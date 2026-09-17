@@ -229,8 +229,10 @@ QWidget* MainWindow::pestanaGestionClientes() {
     btns->addWidget(btnEliminar);
     btns->addStretch();
 
-    tablaClientesAdmin = new QTableWidget(0, 5);
-    tablaClientesAdmin->setHorizontalHeaderLabels({"ID", "Nombre", "Correo", "Teléfono", "Tipo"});
+    tablaClientesAdmin = new QTableWidget(0, 7);
+    tablaClientesAdmin->setHorizontalHeaderLabels(
+        {"ID", "Nombre", "Correo", "Teléfono", "Tipo", "N° Reservas", "Password"});
+
     tablaClientesAdmin->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
     layout->addLayout(btns);
@@ -990,49 +992,168 @@ QWidget* MainWindow::pestanaClienteReservas() {
     QWidget* tab = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(tab);
 
-    // ----- Cargar función -----
-    QLabel* lbl = new QLabel("1. Carga una función para ver el mapa de asientos");
-    QLineEdit* txtCodFun = new QLineEdit();
-    txtCodFun->setPlaceholderText("Código de función (ej. F001)");
-    QPushButton* btnCargar = new QPushButton("Cargar Función");
+    // ========== 1. SELECCIÓN PELÍCULA + FUNCIÓN ==========
+    QLabel* lblPaso1 = new QLabel("1. Selecciona película y función");
+    lblPaso1->setFont(QFont("Arial", 11, QFont::Bold));
+
+    QHBoxLayout* selLayout = new QHBoxLayout();
+
+    QComboBox* cmbPeliculas = new QComboBox();
+    cmbPeliculas->setMinimumWidth(220);
+    cmbPeliculas->addItem("-- Seleccione película --", "");
+
+    QComboBox* cmbFunciones = new QComboBox();
+    cmbFunciones->setMinimumWidth(220);
+    cmbFunciones->addItem("-- Seleccione función --", "");
+
+    QPushButton* btnCargarMapa = new QPushButton("Cargar mapa de asientos");
+    btnCargarMapa->setStyleSheet("background-color: #1976d2; color: white; font-weight: bold; padding: 6px;");
+
+    QPushButton* btnActualizarListas = new QPushButton("Actualizar listas");
+    btnActualizarListas->setStyleSheet("background-color: #546e7a; color: white; padding: 6px;");
+
+    selLayout->addWidget(new QLabel("Película:"));
+    selLayout->addWidget(cmbPeliculas);
+    selLayout->addWidget(new QLabel("Función:"));
+    selLayout->addWidget(cmbFunciones);
+    selLayout->addWidget(btnCargarMapa);
+    selLayout->addWidget(btnActualizarListas);
+
+    QLabel* lblFuncionActivaCliente = new QLabel("Ninguna función cargada");
+    lblFuncionActivaCliente->setStyleSheet("color: #ff9800; font-weight: bold; padding: 6px;");
+
+    // ========== 2. MAPA DE ASIENTOS ==========
+    QLabel* lblPaso2 = new QLabel("2. Mapa de asientos (verde = libre, rojo = ocupado)");
+    lblPaso2->setFont(QFont("Arial", 11, QFont::Bold));
 
     QTableWidget* mapa = new QTableWidget();
     mapa->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-    // ----- Reservar -----
+    // ========== 3. RESERVAR ==========
     QHBoxLayout* inputs = new QHBoxLayout();
-    QLineEdit* txtFila = new QLineEdit(); txtFila->setPlaceholderText("Fila");
-    QLineEdit* txtCol  = new QLineEdit(); txtCol->setPlaceholderText("Columna");
+    QLineEdit* txtFila = new QLineEdit();
+    txtFila->setPlaceholderText("Fila");
+    txtFila->setFixedWidth(80);
+    QLineEdit* txtCol = new QLineEdit();
+    txtCol->setPlaceholderText("Columna");
+    txtCol->setFixedWidth(80);
     QPushButton* btnReservar = new QPushButton("Reservar Asiento");
+    btnReservar->setStyleSheet("background-color: #2e7d32; color: white; font-weight: bold; padding: 6px;");
+    inputs->addWidget(new QLabel("Fila:"));
     inputs->addWidget(txtFila);
+    inputs->addWidget(new QLabel("Columna:"));
     inputs->addWidget(txtCol);
     inputs->addWidget(btnReservar);
+    inputs->addStretch();
 
-    // ----- Historial + Cancelar -----
+    // ========== 4. HISTORIAL + CANCELAR ==========
+    QLabel* lblPaso3 = new QLabel("3. Historial de mis reservas");
+    lblPaso3->setFont(QFont("Arial", 11, QFont::Bold));
+
     QHBoxLayout* histBtns = new QHBoxLayout();
-    QPushButton* btnHistorial = new QPushButton("Ver mi historial de reservas");
+    QPushButton* btnHistorial = new QPushButton("Ver mi historial");
     QPushButton* btnCancelar  = new QPushButton("Cancelar reserva seleccionada");
-    btnHistorial->setStyleSheet("background-color: #1565c0; color: white; font-weight: bold; padding: 8px;");
-    btnCancelar->setStyleSheet("background-color: #c62828; color: white; font-weight: bold; padding: 8px;");
+    btnHistorial->setStyleSheet("background-color: #1565c0; color: white; font-weight: bold; padding: 6px;");
+    btnCancelar->setStyleSheet("background-color: #c62828; color: white; font-weight: bold; padding: 6px;");
     histBtns->addWidget(btnHistorial);
     histBtns->addWidget(btnCancelar);
+    histBtns->addStretch();
 
     QTableWidget* tablaHistorial = new QTableWidget(0, 6);
-    tablaHistorial->setHorizontalHeaderLabels({"Código", "Función", "Fecha", "Fila", "Columna", "Estado"});
+    tablaHistorial->setHorizontalHeaderLabels(
+        {"Código", "Función", "Fecha", "Fila", "Columna", "Estado"});
     tablaHistorial->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tablaHistorial->setSelectionBehavior(QAbstractItemView::SelectRows);
     tablaHistorial->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    layout->addWidget(lbl);
-    layout->addWidget(txtCodFun);
-    layout->addWidget(btnCargar);
+    // Layout general
+    layout->addWidget(lblPaso1);
+    layout->addLayout(selLayout);
+    layout->addWidget(lblFuncionActivaCliente);
+    layout->addWidget(lblPaso2);
     layout->addWidget(mapa);
     layout->addLayout(inputs);
-    layout->addSpacing(15);
+    layout->addSpacing(10);
+    layout->addWidget(lblPaso3);
     layout->addLayout(histBtns);
     layout->addWidget(tablaHistorial);
 
-    // ----- Lambda refrescar mapa -----
+    // ========== LAMBDAS ==========
+
+    // Refrescar combo de películas desde el BST
+    auto refrescarPeliculas = [this, cmbPeliculas, cmbFunciones]() {
+        cmbPeliculas->blockSignals(true);
+        cmbPeliculas->clear();
+        cmbPeliculas->addItem("-- Seleccione película --", "");
+
+        QTableWidget temp;
+        temp.setColumnCount(9);
+        cartelera.cargarEnTabla(&temp, "inorden");
+
+        for (int r = 0; r < temp.rowCount(); r++) {
+            if (!temp.item(r, 0)) continue;
+            QString cod = temp.item(r, 0)->text();
+            QString tit = temp.item(r, 1) ? temp.item(r, 1)->text() : "";
+            if (!cod.isEmpty())
+                cmbPeliculas->addItem(cod + " - " + tit, cod);
+        }
+        cmbPeliculas->blockSignals(false);
+
+        cmbFunciones->clear();
+        cmbFunciones->addItem("-- Seleccione función --", "");
+    };
+
+
+
+    // Al cambiar película → llenar funciones de esa película (AVL)
+    auto refrescarFuncionesDePelicula = [this, cmbPeliculas, cmbFunciones]() {
+        cmbFunciones->clear();
+        cmbFunciones->addItem("-- Seleccione función --", "");
+
+        QString codPel = cmbPeliculas->currentData().toString().trimmed();
+        if (codPel.isEmpty()) {
+            // Si no hay película, no listamos funciones
+            return;
+        }
+
+        QTableWidget temp;
+        temp.setColumnCount(7);
+        funciones.cargarEnTabla(&temp, "inorden");
+
+        int agregadas = 0;
+        for (int r = 0; r < temp.rowCount(); r++) {
+            if (!temp.item(r, 0) || !temp.item(r, 1)) continue;
+
+            QString codFun    = temp.item(r, 0)->text().trimmed();
+            QString codPelFun = temp.item(r, 1)->text().trimmed();
+            QString horario   = temp.item(r, 2) ? temp.item(r, 2)->text() : "";
+            QString sala      = temp.item(r, 3) ? temp.item(r, 3)->text() : "";
+
+            // Comparación sin importar mayúsculas
+            if (QString::compare(codPelFun, codPel, Qt::CaseInsensitive) == 0 && !codFun.isEmpty()) {
+                cmbFunciones->addItem(codFun + " | " + horario + " | " + sala, codFun);
+                agregadas++;
+            }
+        }
+
+        // Si no hubo coincidencias, mostrar TODAS las funciones (para que no quede vacío)
+        if (agregadas == 0) {
+            for (int r = 0; r < temp.rowCount(); r++) {
+                if (!temp.item(r, 0)) continue;
+                QString codFun    = temp.item(r, 0)->text().trimmed();
+                QString codPelFun = temp.item(r, 1) ? temp.item(r, 1)->text().trimmed() : "";
+                QString horario   = temp.item(r, 2) ? temp.item(r, 2)->text() : "";
+                QString sala      = temp.item(r, 3) ? temp.item(r, 3)->text() : "";
+                if (!codFun.isEmpty()) {
+                    cmbFunciones->addItem(
+                        codFun + " (pel: " + codPelFun + ") | " + horario + " | " + sala,
+                        codFun);
+                }
+            }
+        }
+    };
+
+    // Pintar mapa
     auto refrescarMapa = [this, mapa]() {
         if (!matrizActual) {
             mapa->setRowCount(0);
@@ -1062,7 +1183,7 @@ QWidget* MainWindow::pestanaClienteReservas() {
         }
     };
 
-    // ----- Lambda refrescar historial -----
+    // Historial (solo B-Tree + Hash, sin tocar matriz)
     auto refrescarHistorial = [this, tablaHistorial]() {
         tablaHistorial->setRowCount(0);
         if (!clienteActual) return;
@@ -1074,10 +1195,18 @@ QWidget* MainWindow::pestanaClienteReservas() {
             if (res != nullptr) {
                 tablaHistorial->insertRow(fila);
 
-                QDate fechaRes = QDate::fromString(QString::fromStdString(res->fecha_reserva), "yyyy-MM-dd");
+                QDate fechaRes = QDate::fromString(
+                    QString::fromStdString(res->fecha_reserva), "yyyy-MM-dd");
                 QString estado = "VALIDA";
-                if (fechaRes.isValid() && fechaRes < QDate::currentDate())
+                // Estado según fecha de la FUNCIÓN si existe; si no, fecha de reserva
+                Funcion* fun = funciones.buscar(res->codigo_funcion);
+                if (fun && !fun->fecha.empty()) {
+                    QDate fFun = QDate::fromString(QString::fromStdString(fun->fecha), "yyyy-MM-dd");
+                    if (fFun.isValid() && fFun < QDate::currentDate())
+                        estado = "VENCIDA";
+                } else if (fechaRes.isValid() && fechaRes < QDate::currentDate()) {
                     estado = "VENCIDA";
+                }
 
                 tablaHistorial->setItem(fila, 0, new QTableWidgetItem(QString::fromStdString(res->codigo_reserva)));
                 tablaHistorial->setItem(fila, 1, new QTableWidgetItem(QString::fromStdString(res->codigo_funcion)));
@@ -1099,48 +1228,70 @@ QWidget* MainWindow::pestanaClienteReservas() {
         }
     };
 
-    // ----- Cargar función -----
-    connect(btnCargar, &QPushButton::clicked, [this, txtCodFun, refrescarMapa]() {
-        QString cod = txtCodFun->text().trimmed();
-        if (cod.isEmpty()) return;
-        cargarFuncionEnMatriz(cod.toStdString());
-        refrescarMapa();
+    // ========== CONNECTS ==========
+
+    // Al mostrar el panel, cargar películas
+    refrescarPeliculas();
+
+    connect(btnActualizarListas, &QPushButton::clicked, [refrescarPeliculas]() {
+        refrescarPeliculas();
     });
 
-    // ----- Reservar -----
-    connect(btnReservar, &QPushButton::clicked, [this, txtFila, txtCol, refrescarMapa, refrescarHistorial]() {
-        if (!matrizActual || !clienteActual) {
-            QMessageBox::warning(this, "Error", "Debes estar logueado y tener una función cargada.");
-            return;
-        }
-        int f = txtFila->text().toInt();
-        int c = txtCol->text().toInt();
-        if (f <= 0 || c <= 0) {
-            QMessageBox::warning(this, "Error", "Fila y columna deben ser números válidos.");
-            return;
-        }
+    connect(cmbPeliculas, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            [refrescarFuncionesDePelicula](int) {
+                refrescarFuncionesDePelicula();
+            });
 
-        static int contRes = 1;
-        std::string codRes = "R" + std::to_string(1000 + contRes++);
+    // Cargar mapa al elegir función
+    connect(btnCargarMapa, &QPushButton::clicked,
+            [this, cmbFunciones, lblFuncionActivaCliente, refrescarMapa]() {
+                QString codFun = cmbFunciones->currentData().toString();
+                if (codFun.isEmpty()) {
+                    QMessageBox::warning(this, "Atención", "Selecciona una función.");
+                    return;
+                }
+                cargarFuncionEnMatriz(codFun.toStdString());
+                lblFuncionActivaCliente->setText(
+                    "Función cargada: " + codFun + "  |  " +
+                    QString::fromStdString(matrizActual ? matrizActual->getInfoFuncion() : ""));
+                refrescarMapa();
+            });
 
-        if (matrizActual->reservarAsiento(f, c, codRes)) {
-            Reserva* res = new Reserva(
-                codRes, clienteActual->id, funcionActivaCodigo, f, c,
-                QDate::currentDate().toString("yyyy-MM-dd").toStdString()
-                );
-            reservas.insertar(res);
-            clienteActual->agregarCodigoReserva(codRes);
-            guardarMatrizActual();
-            refrescarMapa();
-            refrescarHistorial();
-            QMessageBox::information(this, "Reserva OK",
-                                     QString("Asiento reservado.\nCódigo: %1").arg(QString::fromStdString(codRes)));
-        } else {
-            QMessageBox::warning(this, "Ocupado", "Ese asiento no está disponible.");
-        }
-    });
+    // Reservar
+    connect(btnReservar, &QPushButton::clicked,
+            [this, txtFila, txtCol, refrescarMapa, refrescarHistorial]() {
+                if (!matrizActual || !clienteActual) {
+                    QMessageBox::warning(this, "Error",
+                                         "Debes estar logueado y tener una función cargada.");
+                    return;
+                }
+                int f = txtFila->text().toInt();
+                int c = txtCol->text().toInt();
+                if (f <= 0 || c <= 0) {
+                    QMessageBox::warning(this, "Error", "Fila y columna inválidas.");
+                    return;
+                }
 
-    // ----- Ver historial -----
+                static int contRes = 1;
+                std::string codRes = "R" + std::to_string(1000 + contRes++);
+
+                if (matrizActual->reservarAsiento(f, c, codRes)) {
+                    Reserva* res = new Reserva(
+                        codRes, clienteActual->id, funcionActivaCodigo, f, c,
+                        QDate::currentDate().toString("yyyy-MM-dd").toStdString());
+                    reservas.insertar(res);
+                    clienteActual->agregarCodigoReserva(codRes);
+                    guardarMatrizActual();
+                    refrescarMapa();
+                    refrescarHistorial();
+                    QMessageBox::information(this, "Reserva OK",
+                                             QString("Asiento reservado.\nCódigo: %1").arg(QString::fromStdString(codRes)));
+                } else {
+                    QMessageBox::warning(this, "Ocupado", "Ese asiento no está disponible.");
+                }
+            });
+
+    // Historial
     connect(btnHistorial, &QPushButton::clicked, [this, refrescarHistorial]() {
         if (!clienteActual) {
             QMessageBox::warning(this, "Error", "No hay cliente autenticado.");
@@ -1151,55 +1302,48 @@ QWidget* MainWindow::pestanaClienteReservas() {
             QMessageBox::information(this, "Historial", "No tienes reservas registradas.");
     });
 
-    // ----- CANCELAR RESERVA -----
-    connect(btnCancelar, &QPushButton::clicked, [this, tablaHistorial, refrescarMapa, refrescarHistorial]() {
-        if (!clienteActual) {
-            QMessageBox::warning(this, "Error", "No hay cliente autenticado.");
-            return;
-        }
+    // Cancelar
+    connect(btnCancelar, &QPushButton::clicked,
+            [this, tablaHistorial, refrescarMapa, refrescarHistorial]() {
+                if (!clienteActual) {
+                    QMessageBox::warning(this, "Error", "No hay cliente autenticado.");
+                    return;
+                }
+                int filaSel = tablaHistorial->currentRow();
+                if (filaSel < 0) {
+                    QMessageBox::warning(this, "Error", "Selecciona una reserva de la tabla.");
+                    return;
+                }
 
-        int filaSel = tablaHistorial->currentRow();
-        if (filaSel < 0) {
-            QMessageBox::warning(this, "Error", "Selecciona una reserva de la tabla para cancelar.");
-            return;
-        }
+                QString codReserva = tablaHistorial->item(filaSel, 0)->text();
+                Reserva* res = reservas.buscar(codReserva.toStdString());
+                if (!res) {
+                    QMessageBox::warning(this, "Error", "Reserva no encontrada.");
+                    return;
+                }
 
-        QString codReserva = tablaHistorial->item(filaSel, 0)->text();
-        Reserva* res = reservas.buscar(codReserva.toStdString());
-        if (res == nullptr) {
-            QMessageBox::warning(this, "Error", "Reserva no encontrada.");
-            return;
-        }
+                std::string codFun = res->codigo_funcion;
+                int filaAsiento = res->fila;
+                int colAsiento  = res->columna;
 
-        // Guardar datos antes de eliminar
-        std::string codFun = res->codigo_funcion;
-        int filaAsiento = res->fila;
-        int colAsiento  = res->columna;
+                if (funcionActivaCodigo != codFun)
+                    cargarFuncionEnMatriz(codFun);
 
-        // 1. Cargar la función si no está activa
-        if (funcionActivaCodigo != codFun) {
-            cargarFuncionEnMatriz(codFun);
-        }
+                if (matrizActual) {
+                    matrizActual->cancelarReserva(filaAsiento, colAsiento, "");
+                    guardarMatrizActual();
+                }
 
-        // 2. Liberar asiento + guardar JSON
-        if (matrizActual) {
-            matrizActual->cancelarReserva(filaAsiento, colAsiento, "");
-            guardarMatrizActual();
-        }
+                reservas.eliminar(codReserva.toStdString());
+                clienteActual->eliminarCodigoReserva(codReserva.toStdString());
 
-        // 3. Eliminar de Hash
-        reservas.eliminar(codReserva.toStdString());
+                refrescarMapa();
+                refrescarHistorial();
 
-        // 4. Quitar referencia del cliente
-        clienteActual->eliminarCodigoReserva(codReserva.toStdString());
-
-        refrescarMapa();
-        refrescarHistorial();
-
-        QMessageBox::information(this, "Cancelada",
-                                 QString("Reserva %1 cancelada.\nAsiento F%2-C%3 liberado.")
-                                     .arg(codReserva).arg(filaAsiento).arg(colAsiento));
-    });
+                QMessageBox::information(this, "Cancelada",
+                                         QString("Reserva %1 cancelada.\nAsiento F%2-C%3 liberado.")
+                                             .arg(codReserva).arg(filaAsiento).arg(colAsiento));
+            });
 
     return tab;
 }
