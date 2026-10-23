@@ -1,0 +1,22 @@
+{
+  "clientes": [
+    {
+      "id": "U001",
+      "nombre": "Ana Perez",
+      "correo": "ana@correo.com",
+      "telefono": "5555-0001",
+      "password": "1234",
+      "tipo": "cliente",
+      "reservas": []
+    },
+    {
+      "id": "U002",
+      "nombre": "Luis Gomez",
+      "correo": "luis@correo.com",
+      "telefono": "5555-0002",
+      "password": "1234",
+      "tipo": "cliente",
+      "reservas": []
+    }
+  ]
+}

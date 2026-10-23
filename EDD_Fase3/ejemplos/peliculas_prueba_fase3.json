@@ -1,0 +1,243 @@
+{
+  "sedes": [
+    {
+      "codigo": "S001",
+      "nombre": "CinemaUSAC Zona 10",
+      "direccion": "Zona 10, Ciudad de Guatemala",
+      "cantidad_salas": 3,
+      "telefono": "1122-3344"
+    },
+    {
+      "codigo": "S002",
+      "nombre": "CinemaUSAC Zona 4",
+      "direccion": "Zona 4, Ciudad de Guatemala",
+      "cantidad_salas": 5,
+      "telefono": "1122-3345"
+    },
+    {
+      "codigo": "S003",
+      "nombre": "CinemaUSAC Zona 1",
+      "direccion": "Zona 1, Ciudad de Guatemala",
+      "cantidad_salas": 4,
+      "telefono": "2233-4455"
+    },
+    {
+      "codigo": "S004",
+      "nombre": "CinemaUSAC Zona 12",
+      "direccion": "Zona 12, Ciudad de Guatemala",
+      "cantidad_salas": 6,
+      "telefono": "3344-5566"
+    },
+    {
+      "codigo": "S005",
+      "nombre": "CinemaUSAC Zona 7",
+      "direccion": "Zona 7, Ciudad de Guatemala",
+      "cantidad_salas": 2,
+      "telefono": "4455-6677"
+    }
+  ],
+  "peliculas": [
+    {
+      "codigo": "P001",
+      "titulo": "Batman",
+      "genero": "Accion",
+      "duracion": 120,
+      "clasificacion": "B15",
+      "idioma": "Español",
+      "fecha_estreno": "2026-10-01",
+      "fecha_fin": "2026-12-31",
+      "funciones": [
+        {
+          "codigo_funcion": "F001",
+          "fecha": "2026-11-15",
+          "horario": "17:00",
+          "sede": "S001",
+          "sala": "Sala 1",
+          "filas": 5,
+          "columnas": 8,
+          "archivo_asientos": ""
+        },
+        {
+          "codigo_funcion": "F002",
+          "fecha": "2026-11-15",
+          "horario": "20:00",
+          "sede": "S002",
+          "sala": "Sala 2",
+          "filas": 5,
+          "columnas": 8,
+          "archivo_asientos": ""
+        },
+        {
+          "codigo_funcion": "F012",
+          "fecha": "2026-11-21",
+          "horario": "18:00",
+          "sede": "S003",
+          "sala": "Sala 2",
+          "filas": 5,
+          "columnas": 8,
+          "archivo_asientos": ""
+        },
+        {
+          "codigo_funcion": "F099",
+          "fecha": "2026-11-21",
+          "horario": "18:00",
+          "sede": "S099",
+          "sala": "Sala 2",
+          "filas": 5,
+          "columnas": 8,
+          "archivo_asientos": ""
+        }
+      ]
+    },
+    {
+      "codigo": "P002",
+      "titulo": "Titanic",
+      "genero": "Drama",
+      "duracion": 195,
+      "clasificacion": "B",
+      "idioma": "Español",
+      "fecha_estreno": "2026-10-01",
+      "fecha_fin": "2026-12-31",
+      "funciones": [
+        {
+          "codigo_funcion": "F003",
+          "fecha": "2026-11-16",
+          "horario": "18:00",
+          "sede": "S001",
+          "sala": "Sala 2",
+          "filas": 4,
+          "columnas": 6,
+          "archivo_asientos": ""
+        },
+        {
+          "codigo_funcion": "F004",
+          "fecha": "2026-11-16",
+          "horario": "19:30",
+          "sede": "S002",
+          "sala": "Sala 1",
+          "filas": 4,
+          "columnas": 6,
+          "archivo_asientos": ""
+        }
+      ]
+    },
+    {
+      "codigo": "P003",
+      "titulo": "Toy Story",
+      "genero": "Animacion",
+      "duracion": 90,
+      "clasificacion": "A",
+      "idioma": "Español",
+      "fecha_estreno": "2026-10-01",
+      "fecha_fin": "2026-12-31",
+      "funciones": [
+        {
+          "codigo_funcion": "F005",
+          "fecha": "2026-11-17",
+          "horario": "15:00",
+          "sede": "S002",
+          "sala": "Sala 3",
+          "filas": 5,
+          "columnas": 8,
+          "archivo_asientos": ""
+        },
+        {
+          "codigo_funcion": "F006",
+          "fecha": "2026-11-17",
+          "horario": "16:00",
+          "sede": "S003",
+          "sala": "Sala 1",
+          "filas": 5,
+          "columnas": 8,
+          "archivo_asientos": ""
+        }
+      ]
+    },
+    {
+      "codigo": "P004",
+      "titulo": "Inception",
+      "genero": "Ciencia Ficcion",
+      "duracion": 148,
+      "clasificacion": "B15",
+      "idioma": "Ingles",
+      "fecha_estreno": "2026-10-01",
+      "fecha_fin": "2026-12-31",
+      "funciones": [
+        {
+          "codigo_funcion": "F007",
+          "fecha": "2026-11-18",
+          "horario": "20:30",
+          "sede": "S003",
+          "sala": "Sala 2",
+          "filas": 6,
+          "columnas": 10,
+          "archivo_asientos": ""
+        },
+        {
+          "codigo_funcion": "F008",
+          "fecha": "2026-11-18",
+          "horario": "21:00",
+          "sede": "S004",
+          "sala": "Sala 1",
+          "filas": 6,
+          "columnas": 10,
+          "archivo_asientos": ""
+        }
+      ]
+    },
+    {
+      "codigo": "P005",
+      "titulo": "Coco",
+      "genero": "Animacion",
+      "duracion": 105,
+      "clasificacion": "A",
+      "idioma": "Español",
+      "fecha_estreno": "2026-10-01",
+      "fecha_fin": "2026-12-31",
+      "funciones": [
+        {
+          "codigo_funcion": "F009",
+          "fecha": "2026-11-19",
+          "horario": "14:00",
+          "sede": "S004",
+          "sala": "Sala 4",
+          "filas": 5,
+          "columnas": 8,
+          "archivo_asientos": ""
+        },
+        {
+          "codigo_funcion": "F010",
+          "fecha": "2026-11-19",
+          "horario": "15:30",
+          "sede": "S003",
+          "sala": "Sala 3",
+          "filas": 5,
+          "columnas": 8,
+          "archivo_asientos": ""
+        }
+      ]
+    },
+    {
+      "codigo": "P006",
+      "titulo": "Parasite",
+      "genero": "Thriller",
+      "duracion": 132,
+      "clasificacion": "C",
+      "idioma": "Coreano",
+      "fecha_estreno": "2026-10-01",
+      "fecha_fin": "2026-12-31",
+      "funciones": [
+        {
+          "codigo_funcion": "F011",
+          "fecha": "2026-11-20",
+          "horario": "19:00",
+          "sede": "S005",
+          "sala": "Sala 1",
+          "filas": 4,
+          "columnas": 6,
+          "archivo_asientos": ""
+        }
+      ]
+    }
+  ]
+}
